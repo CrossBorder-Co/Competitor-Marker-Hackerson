@@ -46,7 +46,8 @@ export class DIContainer {
       this.companyRepository,
       this.searchService,
       this.analysisService,
-      this.cacheService
+      this.cacheService,
+      this.marketAnalysisService
     );
     
     this.marketAnalysisUseCase = new MarketAnalysisUseCase(

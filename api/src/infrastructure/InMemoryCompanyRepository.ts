@@ -22,6 +22,17 @@ export class InMemoryCompanyRepository implements ICompanyRepository {
     return null;
   }
 
+  async findByKeyword(keyword: string): Promise<Company | null> {
+    // First try to find by ID
+    const companyById = await this.findById(keyword);
+    if (companyById) {
+      return companyById;
+    }
+
+    // Then try to find by name
+    return await this.findByName(keyword);
+  }
+
   async getCompetitors(companyId: string): Promise<string[]> {
     const company = await this.findById(companyId);
     return company?.recommendationKeywords || [];

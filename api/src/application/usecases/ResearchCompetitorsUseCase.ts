@@ -2,33 +2,42 @@ import type { ICompanyRepository } from '../../domain/interfaces/ICompanyReposit
 import type { ISearchService } from '../../domain/interfaces/ISearchService.js';
 import type { IAnalysisService } from '../../domain/interfaces/IAnalysisService.js';
 import type { ICacheService } from '../../domain/interfaces/ICacheService.js';
+import type { IMarketAnalysisService } from '../../domain/interfaces/IMarketAnalysisService.js';
 import type { CompetitorResearch, ResearchOptions } from '../../domain/models/Company.js';
+import type { MarketAnalysisResponse } from '../../domain/models/MarketAnalysis.js';
+
+export interface ResearchCompetitorsResponse {
+  competitorResearch: CompetitorResearch[];
+  environmentAnalysis?: MarketAnalysisResponse;
+  threatAnalysis?: MarketAnalysisResponse;
+}
 
 export class ResearchCompetitorsUseCase {
   constructor(
     private companyRepository: ICompanyRepository,
     private searchService: ISearchService,
     private analysisService: IAnalysisService,
-    private cacheService: ICacheService
+    private cacheService: ICacheService,
+    private marketAnalysisService: IMarketAnalysisService
   ) {}
 
-  async execute(companyId: string, options: ResearchOptions): Promise<CompetitorResearch[]> {
-    console.log(`🔍 Starting competitor research for company ID: ${companyId}`);
+  async execute(companyKeyword: string, options: ResearchOptions): Promise<ResearchCompetitorsResponse> {
+    console.log(`🔍 Starting competitor research for company keyword: ${companyKeyword}`);
     console.log(`📊 Research options: ${JSON.stringify(options)}`);
     
-    // 1. Get company information
-    console.log(`📋 Looking up company information for ID: ${companyId}`);
-    const company = await this.companyRepository.findById(companyId);
+    // 1. Get company information by keyword (ID first, then name)
+    console.log(`📋 Looking up company information for keyword: ${companyKeyword}`);
+    const company = await this.companyRepository.findByKeyword(companyKeyword);
     if (!company) {
-      throw new Error(`Company with ID ${companyId} not found`);
+      throw new Error(`Company with keyword ${companyKeyword} not found`);
     }
     console.log(`✅ Found company: ${company.name}`);
 
     // 2. Get list of competitors
     console.log(`🏢 Retrieving competitors for ${company.name}`);
-    const allCompetitors = await this.companyRepository.getCompetitors(companyId);
+    const allCompetitors = await this.companyRepository.getCompetitors(company.id);
     if (allCompetitors.length === 0) {
-      throw new Error(`No competitors found for company ${companyId}`);
+      throw new Error(`No competitors found for company ${company.name}`);
     }
     
     // Apply limit
@@ -58,7 +67,7 @@ export class ResearchCompetitorsUseCase {
 
         // Perform new research
         const research = await this.researchCompetitor(
-          companyId,
+          company.id,
           competitorName!,
           targetCompanyContext,
           options
@@ -66,7 +75,7 @@ export class ResearchCompetitorsUseCase {
 
         // Cache the results
         console.log(`💾 Caching research results for ${competitorName}`);
-        await this.cacheService.setCompetitorResearch(companyId, competitorName!, research);
+        await this.cacheService.setCompetitorResearch(company.id, competitorName!, research);
         results.push(research);
         console.log(`✅ Completed research for ${competitorName}`);
       } catch (error) {
@@ -76,7 +85,25 @@ export class ResearchCompetitorsUseCase {
     }
 
     console.log(`\n🎉 Competitor research completed! Total results: ${results.length}/${competitors.length}`);
-    return results;
+    
+    // 3. Perform market analysis if requested
+    const response: ResearchCompetitorsResponse = {
+      competitorResearch: results
+    };
+    
+    if (options.includeEnvironmentAnalysis) {
+      console.log(`\n🌍 Starting environment analysis for ${company.name}`);
+      response.environmentAnalysis = await this.performMarketAnalysis(company, 'environment');
+      console.log(`✅ Environment analysis completed`);
+    }
+    
+    if (options.includeThreatAnalysis) {
+      console.log(`\n⚠️ Starting threat analysis for ${company.name}`);
+      response.threatAnalysis = await this.performMarketAnalysis(company, 'threat');
+      console.log(`✅ Threat analysis completed`);
+    }
+    
+    return response;
   }
 
   private async researchCompetitor(
@@ -139,5 +166,30 @@ export class ResearchCompetitorsUseCase {
 
   private buildCompanyContext(companyName: string, keywords: string[]): string {
     return `会社名: ${companyName}\n主要事業・キーワード:\n${keywords.map(k => `- ${k}`).join('\n')}`;
+  }
+
+  private async performMarketAnalysis(company: any, type: 'environment' | 'threat'): Promise<MarketAnalysisResponse> {
+    // Get competitor companies and their keywords
+    const competitors = await this.companyRepository.getCompetitors(company.id);
+    
+    const similarCompaniesTerms: Record<string, string[]> = {};
+    for (const competitorName of competitors) {
+      const competitorCompany = await this.companyRepository.findByName(competitorName);
+      if (competitorCompany) {
+        similarCompaniesTerms[competitorName] = competitorCompany.keywords;
+      }
+    }
+
+    const request = {
+      targetCompanyName: company.name,
+      targetCompanyTerms: company.keywords,
+      similarCompaniesTerms,
+    };
+
+    if (type === 'environment') {
+      return await this.marketAnalysisService.analyzeMarketEnvironment(request);
+    } else {
+      return await this.marketAnalysisService.analyzeThreatEnvironment(request);
+    }
   }
 }

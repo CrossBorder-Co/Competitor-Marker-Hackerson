@@ -36,4 +36,6 @@ export interface ResearchOptions {
   language: 'EN' | 'JP';
   mode: 'normal' | 'deep';
   limit: number;
+  includeEnvironmentAnalysis?: boolean;
+  includeThreatAnalysis?: boolean;
 }

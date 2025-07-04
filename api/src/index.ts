@@ -55,6 +55,4 @@ server.listen(port);
 console.log(`🚀 Server running on http://localhost:${port}`);
 console.log(`📊 Health check: http://localhost:${port}/health`);
 console.log(`🔍 Research competitors: http://localhost:${port}/researchCompetitors`);
-console.log(`🏢 Analyze environment: http://localhost:${port}/analyzeEnvironment`);
-console.log(`⚠️  Analyze threat: http://localhost:${port}/analyzeThreat`);
 console.log(`💬 MCP conversation: http://localhost:${port}/mcpConversation`);

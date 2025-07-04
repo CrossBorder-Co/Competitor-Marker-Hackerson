@@ -1,7 +1,6 @@
 import { initTRPC } from '@trpc/server';
 import { z } from 'zod';
 import { ResearchCompetitorsInputSchema, ResearchCompetitorsOutputSchema } from '../../application/dto/ResearchDto.js';
-import { MarketAnalysisInputSchema, MarketAnalysisOutputSchema } from '../../application/dto/MarketAnalysisDto.js';
 import type { Context } from './context.js';
 import { McpConversationInputSchema, McpConversationOutputSchema } from '../../application/dto/McpDto.js';
 
@@ -15,21 +14,7 @@ export const appRouter = t.router({
     .input(ResearchCompetitorsInputSchema)
     .output(ResearchCompetitorsOutputSchema)
     .mutation(async ({ input, ctx }) => {
-      return await ctx.researchCompetitorsUseCase.execute(input.companyId, input.options);
-    }),
-
-  analyzeEnvironment: publicProcedure
-    .input(MarketAnalysisInputSchema)
-    .output(MarketAnalysisOutputSchema)
-    .mutation(async ({ input, ctx }) => {
-      return await ctx.marketAnalysisUseCase.analyzeEnvironment(input.targetCompanyName);
-    }),
-
-  analyzeThreat: publicProcedure
-    .input(MarketAnalysisInputSchema)
-    .output(MarketAnalysisOutputSchema)
-    .mutation(async ({ input, ctx }) => {
-      return await ctx.marketAnalysisUseCase.analyzeThreat(input.targetCompanyName);
+      return await ctx.researchCompetitorsUseCase.execute(input.companyKeyword, input.options);
     }),
   
   mcpConversation: publicProcedure
