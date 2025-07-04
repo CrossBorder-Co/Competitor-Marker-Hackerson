@@ -11,8 +11,6 @@ import { Badge } from "@/components/ui/badge"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { TrendingUp, Users, Target, Zap } from "lucide-react"
 import { ChatInterface } from "@/components/chat-interface"
-import { CompetitorAnalysis } from "@/components/competitor-analysis"
-import { ProductRecommendations } from "@/components/product-recommendations"
 
 const TEMPLATE_PROMPTS = [
   {
@@ -66,7 +64,7 @@ export default function CompetitorMarkerApp() {
               <Target className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">競合マーカー</h1>
+              <h1 className="text-3xl font-bold text-slate-900">Competitor Marker</h1>
               <p className="text-slate-600">AI搭載の競合インテリジェンスプラットフォーム</p>
             </div>
           </div>
@@ -96,8 +94,6 @@ export default function CompetitorMarkerApp() {
               endDate={endDate}
               onReset={resetAnalysis}
             />
-            <CompetitorAnalysis company={selectedCompany} startDate={startDate} endDate={endDate} />
-            <ProductRecommendations company={selectedCompany} />
           </div>
         ) : (
           <Card>

@@ -1,24 +1,24 @@
 "use client"
 
+import { useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { TrendingUp, TrendingDown, Minus, Users, DollarSign, Target, Zap } from "lucide-react"
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   PieChart,
   Pie,
   Cell,
 } from "recharts"
+import { TrendingUp, TrendingDown, AlertTriangle, Target, Users } from "lucide-react"
+import { useCompetitorData, useMarketInsights } from "@/hooks/use-api"
 
 interface CompetitorAnalysisProps {
   company: string
@@ -27,31 +27,43 @@ interface CompetitorAnalysisProps {
 }
 
 const marketShareData = [
-  { month: "1月", company: 35, competitor1: 25, competitor2: 20, others: 20 },
-  { month: "2月", company: 37, competitor1: 24, competitor2: 19, others: 20 },
-  { month: "3月", company: 36, competitor1: 26, competitor2: 18, others: 20 },
-  { month: "4月", company: 38, competitor1: 25, competitor2: 17, others: 20 },
-  { month: "5月", company: 40, competitor1: 24, competitor2: 16, others: 20 },
-  { month: "6月", company: 39, competitor1: 25, competitor2: 16, others: 20 },
+  { name: "Q1", company: 35, competitor1: 25, competitor2: 20, others: 20 },
+  { name: "Q2", company: 37, competitor1: 24, competitor2: 19, others: 20 },
+  { name: "Q3", company: 39, competitor1: 23, competitor2: 18, others: 20 },
+  { name: "Q4", company: 41, competitor1: 22, competitor2: 17, others: 20 },
 ]
 
-const competitorMetrics = [
-  { name: "市場シェア", value: 39, change: 4, trend: "up" },
-  { name: "ブランドセンチメント", value: 78, change: -2, trend: "down" },
-  { name: "イノベーション指数", value: 85, change: 8, trend: "up" },
-  { name: "顧客満足度", value: 82, change: 0, trend: "stable" },
+const competitiveMetrics = [
+  { name: "ブランド認知度", value: 85, change: 5 },
+  { name: "顧客満足度", value: 78, change: -2 },
+  { name: "市場シェア", value: 41, change: 6 },
+  { name: "イノベーション指数", value: 72, change: 8 },
 ]
 
-const threatLevels = [
-  { name: "直接の競合", value: 75, color: "#ef4444" },
-  { name: "新規参入者", value: 45, color: "#f97316" },
-  { name: "代替品", value: 30, color: "#eab308" },
-  { name: "サプライヤー", value: 20, color: "#22c55e" },
+const threatMatrix = [
+  { threat: "新規参入者", impact: "高", probability: "中", severity: 75 },
+  { threat: "価格競争", impact: "中", probability: "高", severity: 60 },
+  { threat: "技術革新", impact: "高", probability: "低", severity: 45 },
+  { threat: "規制変更", impact: "中", probability: "中", severity: 40 },
 ]
 
-const COLORS = ["#3b82f6", "#ef4444", "#f97316", "#22c55e", "#8b5cf6"]
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
 
 export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAnalysisProps) {
+  const { data: competitorData, loading: competitorLoading, fetchCompetitorData } = useCompetitorData()
+  const { data: marketData, loading: marketLoading, fetchMarketInsights } = useMarketInsights()
+
+  useEffect(() => {
+    if (company) {
+      fetchCompetitorData(company).catch(console.error)
+      fetchMarketInsights({
+        company,
+        industry: "technology", // This could be dynamic based on company
+        region: "global",
+      }).catch(console.error)
+    }
+  }, [company, fetchCompetitorData, fetchMarketInsights])
+
   return (
     <div className="space-y-6">
       <Card>
@@ -64,6 +76,44 @@ export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAn
         </CardHeader>
       </Card>
 
+      {/* API Data Display */}
+      {competitorData && (
+        <Card>
+          <CardHeader>
+            <CardTitle>API競合データ</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-slate-50 p-4 rounded-lg">
+              <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(competitorData, null, 2)}</pre>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {marketData && (
+        <Card>
+          <CardHeader>
+            <CardTitle>API市場インサイト</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-slate-50 p-4 rounded-lg">
+              <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(marketData, null, 2)}</pre>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {(competitorLoading || marketLoading) && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-600"></div>
+              localhost:5000から競合データを取得中...
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">概要</TabsTrigger>
@@ -74,39 +124,26 @@ export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAn
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {competitorMetrics.map((metric) => (
+            {competitiveMetrics.map((metric) => (
               <Card key={metric.name}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-600">{metric.name}</p>
-                      <p className="text-2xl font-bold">{metric.value}%</p>
-                    </div>
-                    <div
-                      className={`p-2 rounded-full ${
-                        metric.trend === "up" ? "bg-green-100" : metric.trend === "down" ? "bg-red-100" : "bg-slate-100"
-                      }`}
-                    >
-                      {metric.trend === "up" ? (
-                        <TrendingUp className="h-4 w-4 text-green-600" />
-                      ) : metric.trend === "down" ? (
-                        <TrendingDown className="h-4 w-4 text-red-600" />
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{metric.name}</span>
+                    <div className="flex items-center gap-1">
+                      {metric.change > 0 ? (
+                        <TrendingUp className="h-3 w-3 text-green-500" />
                       ) : (
-                        <Minus className="h-4 w-4 text-slate-600" />
+                        <TrendingDown className="h-3 w-3 text-red-500" />
                       )}
+                      <span className={`text-xs ${metric.change > 0 ? "text-green-500" : "text-red-500"}`}>
+                        {metric.change > 0 ? "+" : ""}
+                        {metric.change}%
+                      </span>
                     </div>
                   </div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <Badge
-                      variant={
-                        metric.trend === "up" ? "default" : metric.trend === "down" ? "destructive" : "secondary"
-                      }
-                    >
-                      {metric.change > 0 ? "+" : ""}
-                      {metric.change}%
-                    </Badge>
-                    <span className="text-xs text-slate-500">前期比</span>
-                  </div>
+                  <div className="text-2xl font-bold mb-2">{metric.value}%</div>
+                  <Progress value={metric.value} className="h-2" />
+                  <span className="text-xs text-slate-500 mt-1">前期比</span>
                 </CardContent>
               </Card>
             ))}
@@ -115,77 +152,53 @@ export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAn
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>競争上の強み</CardTitle>
+                <CardTitle className="text-lg">競争上の強み</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>ブランド認知度</span>
-                      <span>92%</span>
-                    </div>
-                    <Progress value={92} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>製品品質</span>
-                      <span>88%</span>
-                    </div>
-                    <Progress value={88} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>顧客サービス</span>
-                      <span>85%</span>
-                    </div>
-                    <Progress value={85} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>イノベーション</span>
-                      <span>79%</span>
-                    </div>
-                    <Progress value={79} className="h-2" />
-                  </div>
-                </div>
+              <CardContent>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full" />
+                    <span className="text-sm">強力なブランド認知度</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full" />
+                    <span className="text-sm">革新的な製品ポートフォリオ</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full" />
+                    <span className="text-sm">確立された流通チャネル</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full" />
+                    <span className="text-sm">高い顧客ロイヤルティ</span>
+                  </li>
+                </ul>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>改善領域</CardTitle>
+                <CardTitle className="text-lg">改善領域</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>価格競争力</span>
-                      <span>65%</span>
-                    </div>
-                    <Progress value={65} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>市場の俊敏性</span>
-                      <span>58%</span>
-                    </div>
-                    <Progress value={58} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>デジタルプレゼンス</span>
-                      <span>72%</span>
-                    </div>
-                    <Progress value={72} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>パートナーシップネットワーク</span>
-                      <span>61%</span>
-                    </div>
-                    <Progress value={61} className="h-2" />
-                  </div>
-                </div>
+              <CardContent>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+                    <span className="text-sm">価格競争力の向上</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+                    <span className="text-sm">新興市場への参入</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+                    <span className="text-sm">デジタル変革の加速</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+                    <span className="text-sm">サステナビリティ戦略</span>
+                  </li>
+                </ul>
               </CardContent>
             </Card>
           </div>
@@ -201,13 +214,13 @@ export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAn
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={marketShareData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
+                  <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Line type="monotone" dataKey="company" stroke="#3b82f6" strokeWidth={3} name={company} />
-                  <Line type="monotone" dataKey="competitor1" stroke="#ef4444" strokeWidth={2} name="競合A" />
-                  <Line type="monotone" dataKey="competitor2" stroke="#f97316" strokeWidth={2} name="競合B" />
-                  <Line type="monotone" dataKey="others" stroke="#6b7280" strokeWidth={2} name="その他" />
+                  <Line type="monotone" dataKey="company" stroke="#2563eb" strokeWidth={2} name={company} />
+                  <Line type="monotone" dataKey="competitor1" stroke="#dc2626" strokeWidth={2} name="競合他社A" />
+                  <Line type="monotone" dataKey="competitor2" stroke="#16a34a" strokeWidth={2} name="競合他社B" />
+                  <Line type="monotone" dataKey="others" stroke="#ca8a04" strokeWidth={2} name="その他" />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -219,13 +232,13 @@ export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAn
                 <CardTitle>現在の市場ポジション</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
+                <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie
                       data={[
-                        { name: company, value: 39 },
-                        { name: "競合A", value: 25 },
-                        { name: "競合B", value: 16 },
+                        { name: company, value: 41 },
+                        { name: "競合他社A", value: 22 },
+                        { name: "競合他社B", value: 17 },
                         { name: "その他", value: 20 },
                       ]}
                       cx="50%"
@@ -233,9 +246,9 @@ export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAn
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}%`}
+                      label
                     >
-                      {[0, 1, 2, 3].map((entry, index) => (
+                      {marketShareData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -250,26 +263,21 @@ export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAn
                 <CardTitle>競合指標</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium">マーケットリーダー</span>
-                  </div>
-                  <Badge className="bg-blue-600">{company}</Badge>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">市場リーダーシップ</span>
+                  <Badge variant="secondary">1位</Badge>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">成長率</span>
-                  </div>
-                  <span className="font-semibold text-green-600">+12.5%</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">成長率</span>
+                  <span className="text-sm font-medium text-green-600">+6.2%</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-slate-600" />
-                    <span className="font-medium">収益シェア</span>
-                  </div>
-                  <span className="font-semibold">$2.1B</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">競合優位性</span>
+                  <Badge>強い</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">市場集中度</span>
+                  <span className="text-sm">中程度</span>
                 </div>
               </CardContent>
             </Card>
@@ -279,44 +287,63 @@ export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAn
         <TabsContent value="threats" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>脅威評価マトリックス</CardTitle>
-              <CardDescription>カテゴリ別の競合脅威の分析</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                脅威評価マトリックス
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={threatLevels} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[0, 100]} />
-                  <YAxis dataKey="name" type="category" width={120} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#ef4444" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="space-y-4">
+                {threatMatrix.map((threat) => (
+                  <div key={threat.threat} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">{threat.threat}</h4>
+                      <div className="flex gap-2">
+                        <Badge variant={threat.impact === "高" ? "destructive" : "secondary"}>
+                          影響: {threat.impact}
+                        </Badge>
+                        <Badge variant={threat.probability === "高" ? "destructive" : "secondary"}>
+                          確率: {threat.probability}
+                        </Badge>
+                      </div>
+                    </div>
+                    <Progress value={threat.severity} className="h-2" />
+                    <span className="text-xs text-slate-500">脅威レベル: {threat.severity}%</span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-red-600">優先度の高い脅威</CardTitle>
+                <CardTitle>優先度の高い脅威</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-                  <h4 className="font-semibold text-red-800">競合A - 積極的な価格設定</h4>
-                  <p className="text-sm text-red-700 mt-1">主要製品で20%の価格引き下げ、主要顧客をターゲットに</p>
-                  <Badge variant="destructive" className="mt-2">
-                    重大
-                  </Badge>
-                </div>
-                <div className="p-4 border border-orange-200 rounded-lg bg-orange-50">
-                  <h4 className="font-semibold text-orange-800">新規参入者 - TechCorp</h4>
-                  <p className="text-sm text-orange-700 mt-1">
-                    革新的なAI搭載ソリューションを持つ資金豊富なスタートアップ
-                  </p>
-                  <Badge variant="secondary" className="mt-2 bg-orange-200">
-                    高
-                  </Badge>
-                </div>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5" />
+                    <div>
+                      <div className="font-medium text-sm">新規参入者の台頭</div>
+                      <div className="text-xs text-slate-600">資金豊富なスタートアップによる市場参入</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <AlertTriangle className="h-4 w-4 text-orange-500 mt-0.5" />
+                    <div>
+                      <div className="font-medium text-sm">価格競争の激化</div>
+                      <div className="text-xs text-slate-600">既存競合他社による積極的な価格戦略</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5" />
+                    <div>
+                      <div className="font-medium text-sm">技術革新の遅れ</div>
+                      <div className="text-xs text-slate-600">AI・自動化技術への対応不足</div>
+                    </div>
+                  </li>
+                </ul>
               </CardContent>
             </Card>
 
@@ -324,15 +351,30 @@ export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAn
               <CardHeader>
                 <CardTitle>緩和戦略</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                  <h4 className="font-semibold text-green-800">価値提案の強化</h4>
-                  <p className="text-sm text-green-700 mt-1">独自の機能と優れた顧客サービスに焦点を当てる</p>
-                </div>
-                <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                  <h4 className="font-semibold text-blue-800">イノベーションへの投資</h4>
-                  <p className="text-sm text-blue-700 mt-1">研究開発と製品開発イニシアチブを加速する</p>
-                </div>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" />
+                    <div>
+                      <div className="font-medium text-sm">イノベーション投資の拡大</div>
+                      <div className="text-xs text-slate-600">R&D予算を20%増加</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" />
+                    <div>
+                      <div className="font-medium text-sm">戦略的パートナーシップ</div>
+                      <div className="text-xs text-slate-600">技術企業との提携強化</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" />
+                    <div>
+                      <div className="font-medium text-sm">顧客ロイヤルティ強化</div>
+                      <div className="text-xs text-slate-600">カスタマーサクセス投資</div>
+                    </div>
+                  </li>
+                </ul>
               </CardContent>
             </Card>
           </div>
@@ -343,52 +385,93 @@ export function CompetitorAnalysis({ company, startDate, endDate }: CompetitorAn
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-yellow-500" />
+                  <Target className="h-5 w-5" />
                   市場機会
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                  <h4 className="font-semibold text-green-800">SMB市場の拡大</h4>
-                  <p className="text-sm text-green-700 mt-1">
-                    40%の成長可能性を持つ、サービスが不十分な中小企業セグメント
-                  </p>
-                </div>
-                <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                  <h4 className="font-semibold text-blue-800">国際市場</h4>
-                  <p className="text-sm text-blue-700 mt-1">アジア太平洋地域で当社のソリューションに対する強い需要</p>
-                </div>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2" />
+                    <div>
+                      <div className="font-medium text-sm">新興市場への拡大</div>
+                      <div className="text-xs text-slate-600">アジア太平洋地域での成長機会</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2" />
+                    <div>
+                      <div className="font-medium text-sm">デジタル変革サービス</div>
+                      <div className="text-xs text-slate-600">企業のDX支援需要の増加</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2" />
+                    <div>
+                      <div className="font-medium text-sm">サステナビリティ市場</div>
+                      <div className="text-xs text-slate-600">環境配慮型製品への需要拡大</div>
+                    </div>
+                  </li>
+                </ul>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>戦略的推奨事項</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  戦略的推奨事項
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      1
-                    </div>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2" />
                     <div>
-                      <h5 className="font-semibold">SMB向けGTMの加速</h5>
-                      <p className="text-sm text-slate-600">中小企業向けの簡素化された製品層を立ち上げる</p>
+                      <div className="font-medium text-sm">M&A戦略の検討</div>
+                      <div className="text-xs text-slate-600">技術力強化のための買収</div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                    <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      2
-                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2" />
                     <div>
-                      <h5 className="font-semibold">AI能力への投資</h5>
-                      <p className="text-sm text-slate-600">競争力を維持するためにAI搭載機能を開発する</p>
+                      <div className="font-medium text-sm">プラットフォーム戦略</div>
+                      <div className="text-xs text-slate-600">エコシステム構築による差別化</div>
                     </div>
-                  </div>
-                </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2" />
+                    <div>
+                      <div className="font-medium text-sm">人材投資の拡大</div>
+                      <div className="text-xs text-slate-600">AI・データサイエンス人材の確保</div>
+                    </div>
+                  </li>
+                </ul>
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>実装ロードマップ</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <div className="font-medium text-sm">短期（3-6ヶ月）</div>
+                  <div className="text-xs text-slate-600">競合分析システムの導入、価格戦略の見直し</div>
+                </div>
+                <div className="border-l-4 border-green-500 pl-4">
+                  <div className="font-medium text-sm">中期（6-12ヶ月）</div>
+                  <div className="text-xs text-slate-600">新市場参入、戦略的パートナーシップの構築</div>
+                </div>
+                <div className="border-l-4 border-purple-500 pl-4">
+                  <div className="font-medium text-sm">長期（12ヶ月以上）</div>
+                  <div className="text-xs text-slate-600">M&A実行、プラットフォーム戦略の展開</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
