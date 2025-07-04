@@ -21,6 +21,7 @@ const container = new DIContainer({
   openaiApiKey: process.env.OPENAI_API_KEY!,
   cacheDir: process.env.CACHE_DIR || './cache',
   cacheTtlHours: parseInt(process.env.CACHE_TTL_HOURS || '24'),
+  mcpServerUrl: process.env.MCP_SERVER_URL || 'https://search-mcp.salesmarker-server.com/mcp/',
 });
 
 // Create HTTP server
@@ -50,8 +51,8 @@ const server = createHTTPServer({
 
 const port = parseInt(process.env.PORT || '3001');
 
-server.listen(port, () => {
-  console.log(`🚀 Server running on http://localhost:${port}`);
-  console.log(`📊 Health check: http://localhost:${port}/health`);
-  console.log(`🔍 Research competitors: http://localhost:${port}/researchCompetitors`);
-});
+const result = server.listen(port, '0.0.0.0');
+console.log(`🚀 Server running on http://localhost:${result.port}`);
+console.log(`📊 Health check: http://localhost:${result.port}/health`);
+console.log(`🔍 Research competitors: http://localhost:${result.port}/researchCompetitors`);
+console.log(`💬 MCP conversation: http://localhost:${result.port}/mcpConversation`);

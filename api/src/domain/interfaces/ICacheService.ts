@@ -1,4 +1,4 @@
-import { SearchResult, CompetitorResearch } from '../models/Company.js';
+import type { SearchResult, CompetitorResearch } from '../models/Company.js';
 
 export interface ICacheService {
   getSearchResult(key: string): Promise<SearchResult | null>;
