@@ -1,12 +1,21 @@
 import type { McpConversationInput, McpConversationOutput } from '../dto/McpDto.js';
-import type { ICacheService } from '../../domain/interfaces/ICacheService.js';
-import { McpConversationService } from '../../infrastructure/external/McpConversationService.js';
+import { Agent, run, MCPServerStreamableHttp } from '@openai/agents'
 
 export class McpConversationUseCase {
-  constructor(
-    private mcpConversationService: McpConversationService,
-    private cacheService: ICacheService
-  ) {}
+  private agent;
+  private mcpServer;
+  constructor() {
+
+        this.mcpServer = new MCPServerStreamableHttp({
+          url: 'https://search-mcp.salesmarker-server.com/mcp/',
+          name: 'Sales Marker MCP Server',
+        });
+        this.agent = new Agent({
+          name: 'Sales Marker Data Assistant',
+          instructions: 'Use the tools to respond to user requests.',
+          mcpServers: [this.mcpServer],
+        });
+  }
 
   async execute(input: McpConversationInput): Promise<McpConversationOutput> {
     console.log(`🎯 Executing MCP conversation use case: "${input.query}"`);
@@ -16,51 +25,16 @@ export class McpConversationUseCase {
     }
     
     try {
-      const safeSubIds = input.subIds || [1, 66];
-      const cacheKey = this.generateCacheKey(input.query, safeSubIds);
-      
-      const cachedResult = await this.cacheService.getSearchResult(cacheKey);
-      if (cachedResult) {
-        console.log('💾 Using cached conversation result');
-        return {
-          response: cachedResult.results[0]?.snippet || 'Cached response',
-          mcpData: cachedResult.results[0]?.content || 'Cached data',
-          timestamp: cachedResult.timestamp
-        };
-      }
-      
-      const result = await this.mcpConversationService.processConversation(input.query);
-      
-      const searchResult = {
-        query: input.query,
-        results: [{
-          title: 'MCP Conversation Result',
-          url: 'mcp://conversation',
-          snippet: result.response,
-          content: result.mcpData
-        }],
-        timestamp: result.timestamp,
-        language: 'EN' as const
-      };
-      
-      await this.cacheService.setSearchResult(cacheKey, searchResult);
-      
-      console.log('✅ MCP conversation completed successfully');
-      
+      await this.mcpServer.connect();
+      const result = await run(this.agent, input.query);
+      console.log(result.finalOutput);
+      await this.mcpServer.close();
       return {
-        response: result.response,
-        mcpData: result.mcpData,
-        timestamp: result.timestamp
-      };
+        response: result.finalOutput || "",
+      }
     } catch (error) {
       console.error('❌ MCP conversation use case failed:', error);
       throw new Error(`Failed to execute MCP conversation: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }
-
-  private generateCacheKey(query: string, subIds: number[]): string {
-    const safeSubIds = subIds || [1, 66];
-    const input = `mcp-conversation-${query}-${safeSubIds.join(',')}`;
-    return Buffer.from(input).toString('base64').substring(0, 32);
   }
 }
