@@ -1,6 +1,7 @@
 import { initTRPC } from '@trpc/server';
 import { z } from 'zod';
 import { ResearchCompetitorsInputSchema, ResearchCompetitorsOutputSchema } from '../../application/dto/ResearchDto.js';
+import { GenerateCompetitorArticleInputSchema, GenerateCompetitorArticleOutputSchema } from '../../application/dto/ArticleDto.js';
 import type { Context } from './context.js';
 import { McpConversationInputSchema, McpConversationOutputSchema } from '../../application/dto/McpDto.js';
 
@@ -15,6 +16,31 @@ export const appRouter = t.router({
     .output(ResearchCompetitorsOutputSchema)
     .mutation(async ({ input, ctx }) => {
       return await ctx.researchCompetitorsUseCase.execute(input.companyKeyword, input.options);
+    }),
+
+  generateCompetitorArticle: publicProcedure
+    .input(GenerateCompetitorArticleInputSchema)
+    .output(GenerateCompetitorArticleOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const researchOptions = {
+        language: input.options.language,
+        mode: input.options.mode,
+        limit: input.options.limit,
+        includeEnvironmentAnalysis: input.options.includeEnvironmentAnalysis,
+        includeThreatAnalysis: input.options.includeThreatAnalysis,
+      };
+
+      const articleOptions = {
+        articleStyle: input.options.articleStyle,
+        includeImages: input.options.includeImages,
+        language: input.options.language,
+      };
+
+      return await ctx.articleGenerationUseCase.execute(
+        input.companyKeyword,
+        researchOptions,
+        articleOptions
+      );
     }),
   
   mcpConversation: publicProcedure

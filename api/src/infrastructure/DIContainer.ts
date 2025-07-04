@@ -3,12 +3,15 @@ import type { ISearchService } from '../domain/interfaces/ISearchService.js';
 import type { IAnalysisService } from '../domain/interfaces/IAnalysisService.js';
 import type { ICacheService } from '../domain/interfaces/ICacheService.js';
 import type { IMarketAnalysisService } from '../domain/interfaces/IMarketAnalysisService.js';
+import type { IArticleGenerationService } from '../domain/interfaces/IArticleGenerationService.js';
 import { ResearchCompetitorsUseCase } from '../application/usecases/ResearchCompetitorsUseCase.js';
 import { MarketAnalysisUseCase } from '../application/usecases/MarketAnalysisUseCase.js';
+import { ArticleGenerationUseCase } from '../application/usecases/ArticleGenerationUseCase.js';
 import { InMemoryCompanyRepository } from './InMemoryCompanyRepository.js';
 import { TavilySearchService } from './external/TavilySearchService.js';
 import { OpenAIAnalysisService } from './external/OpenAIAnalysisService.js';
 import { OpenAIMarketAnalysisService } from './external/OpenAIMarketAnalysisService.js';
+import { OpenAIArticleGenerationService } from './external/OpenAIArticleGenerationService.js';
 import { FileCacheService } from './cache/FileCacheService.js';
 import type { IMcpService } from '../domain/interfaces/IMcpService.js';
 import { McpConversationUseCase } from '../application/usecases/McpConversationUseCase.js';
@@ -26,9 +29,11 @@ export class DIContainer {
   private searchService: ISearchService;
   private analysisService: IAnalysisService;
   private marketAnalysisService: IMarketAnalysisService;
+  private articleGenerationService: IArticleGenerationService;
   private cacheService: ICacheService;
   private researchCompetitorsUseCase: ResearchCompetitorsUseCase;
   private marketAnalysisUseCase: MarketAnalysisUseCase;
+  private articleGenerationUseCase: ArticleGenerationUseCase;
   private mcpConversationUseCase: McpConversationUseCase;
 
   constructor(config: DIConfig) {
@@ -37,6 +42,7 @@ export class DIContainer {
     this.searchService = new TavilySearchService(config.tavilyApiKey);
     this.analysisService = new OpenAIAnalysisService(config.openaiApiKey);
     this.marketAnalysisService = new OpenAIMarketAnalysisService(config.openaiApiKey);
+    this.articleGenerationService = new OpenAIArticleGenerationService(config.openaiApiKey);
     this.cacheService = new FileCacheService(config.cacheDir, config.cacheTtlHours);
 
 
@@ -53,6 +59,11 @@ export class DIContainer {
     this.marketAnalysisUseCase = new MarketAnalysisUseCase(
       this.companyRepository,
       this.marketAnalysisService
+    );
+    
+    this.articleGenerationUseCase = new ArticleGenerationUseCase(
+      this.researchCompetitorsUseCase,
+      this.articleGenerationService
     );
     
     this.mcpConversationUseCase = new McpConversationUseCase();
@@ -84,6 +95,10 @@ export class DIContainer {
 
   getMarketAnalysisUseCase(): MarketAnalysisUseCase {
     return this.marketAnalysisUseCase;
+  }
+
+  getArticleGenerationUseCase(): ArticleGenerationUseCase {
+    return this.articleGenerationUseCase;
   }
 
   getMcpConversationUseCase(): McpConversationUseCase {
