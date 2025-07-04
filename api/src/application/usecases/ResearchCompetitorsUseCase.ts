@@ -57,7 +57,7 @@ export class ResearchCompetitorsUseCase {
       try {
         // Check cache first
         console.log(`💾 Checking cache for ${competitorName}`);
-        const cachedResearch = await this.cacheService.getCompetitorResearch(companyId, competitorName!);
+        const cachedResearch = await this.cacheService.getCompetitorResearch(company.id, competitorName!);
         if (cachedResearch) {
           console.log(`✅ Found cached research for ${competitorName} (${cachedResearch.lastUpdated.toISOString()})`);
           results.push(cachedResearch);
