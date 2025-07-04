@@ -45,25 +45,25 @@ export class ResearchCompetitorsUseCase {
     console.log(`✅ Found ${allCompetitors.length} total competitors, researching ${competitors.length} (limit: ${options.limit})`);
     console.log(`📋 Competitors to research: ${competitors.slice(0, 3).join(', ')}${competitors.length > 3 ? '...' : ''}`);
 
-    // 3. Research each competitor
-    const results: CompetitorResearch[] = [];
+    // 3. Research each competitor in parallel
     const targetCompanyContext = this.buildCompanyContext(company.name, company.keywords);
     console.log(`🎯 Target company context prepared`);
+    console.log(`🚀 Starting parallel research for ${competitors.length} competitors...`);
 
-    for (let i = 0; i < competitors.length; i++) {
-      const competitorName = competitors[i];
-      console.log(`\n🔬 [${i + 1}/${competitors.length}] Researching competitor: ${competitorName}`);
+    // Create parallel research tasks
+    const researchTasks = competitors.map(async (competitorName, index) => {
+      const competitorNumber = index + 1;
+      console.log(`🔬 [${competitorNumber}/${competitors.length}] Starting research for: ${competitorName}`);
       
       try {
         // Check cache first
-        console.log(`💾 Checking cache for ${competitorName}`);
+        console.log(`💾 [${competitorNumber}] Checking cache for ${competitorName}`);
         const cachedResearch = await this.cacheService.getCompetitorResearch(company.id, competitorName!);
         if (cachedResearch) {
-          console.log(`✅ Found cached research for ${competitorName} (${cachedResearch.lastUpdated.toISOString()})`);
-          results.push(cachedResearch);
-          continue;
+          console.log(`✅ [${competitorNumber}] Found cached research for ${competitorName} (${cachedResearch.lastUpdated.toISOString()})`);
+          return cachedResearch;
         }
-        console.log(`📝 No cache found, performing new research for ${competitorName}`);
+        console.log(`📝 [${competitorNumber}] No cache found, performing new research for ${competitorName}`);
 
         // Perform new research
         const research = await this.researchCompetitor(
@@ -74,15 +74,21 @@ export class ResearchCompetitorsUseCase {
         );
 
         // Cache the results
-        console.log(`💾 Caching research results for ${competitorName}`);
+        console.log(`💾 [${competitorNumber}] Caching research results for ${competitorName}`);
         await this.cacheService.setCompetitorResearch(company.id, competitorName!, research);
-        results.push(research);
-        console.log(`✅ Completed research for ${competitorName}`);
+        console.log(`✅ [${competitorNumber}] Completed research for ${competitorName}`);
+        return research;
       } catch (error) {
-        console.error(`❌ Error researching competitor ${competitorName}:`, error);
-        // Continue with other competitors
+        console.error(`❌ [${competitorNumber}] Error researching competitor ${competitorName}:`, error);
+        return null; // Return null for failed research
       }
-    }
+    });
+
+    // Execute all research tasks in parallel
+    const researchResults = await Promise.all(researchTasks);
+    
+    // Filter out null results (failed research)
+    const results: CompetitorResearch[] = researchResults.filter((result): result is CompetitorResearch => result !== null);
 
     console.log(`\n🎉 Competitor research completed! Total results: ${results.length}/${competitors.length}`);
     
@@ -220,53 +226,59 @@ export class ResearchCompetitorsUseCase {
   }
 
   private async performMarketSearches(company: any, type: 'environment' | 'threat'): Promise<SearchResult[]> {
-    const searchResults: SearchResult[] = [];
     const options = { language: 'JP' as const, mode: 'normal' as const, limit: 10 };
 
     try {
+      let queries: string[] = [];
+      
       if (type === 'environment') {
         // Search for market environment information
-        const environmentSearches = [
+        queries = [
           `${company.name} 市場環境 業界動向`,
           `${company.name} 市場規模 成長性`,
           `${company.name} 業界 競争環境`,
           `${company.name} 顧客セグメント`,
         ];
-
-        for (const query of environmentSearches) {
-          try {
-            const result = await this.searchService.search(query, options);
-            if (result && result.results.length > 0) {
-              searchResults.push(result);
-            }
-          } catch (error) {
-            console.warn(`⚠️ Search failed for query: ${query}`, error);
-          }
-        }
       } else {
         // Search for threat analysis information
-        const threatSearches = [
+        queries = [
           `${company.name} 競合他社 脅威`,
           `${company.name} 市場 新規参入`,
           `${company.name} 業界 リスク`,
           `${company.name} 競争優位性`,
         ];
-
-        for (const query of threatSearches) {
-          try {
-            const result = await this.searchService.search(query, options);
-            if (result && result.results.length > 0) {
-              searchResults.push(result);
-            }
-          } catch (error) {
-            console.warn(`⚠️ Search failed for query: ${query}`, error);
-          }
-        }
       }
+
+      console.log(`🚀 Starting ${queries.length} parallel searches for ${type} analysis...`);
+
+      // Perform all searches in parallel
+      const searchTasks = queries.map(async (query, index) => {
+        try {
+          console.log(`🔍 [${index + 1}/${queries.length}] Searching: ${query}`);
+          const result = await this.searchService.search(query, options);
+          if (result && result.results.length > 0) {
+            console.log(`✅ [${index + 1}/${queries.length}] Found ${result.results.length} results for: ${query}`);
+            return result;
+          } else {
+            console.log(`📭 [${index + 1}/${queries.length}] No results for: ${query}`);
+            return null;
+          }
+        } catch (error) {
+          console.warn(`⚠️ [${index + 1}/${queries.length}] Search failed for query: ${query}`, error);
+          return null;
+        }
+      });
+
+      const searchResults = await Promise.all(searchTasks);
+      
+      // Filter out null results
+      const validResults = searchResults.filter((result): result is SearchResult => result !== null);
+      console.log(`✅ Completed ${type} searches: ${validResults.length}/${queries.length} successful`);
+      
+      return validResults;
     } catch (error) {
       console.error(`❌ Error performing market searches for ${type}:`, error);
+      return [];
     }
-
-    return searchResults;
   }
 }
