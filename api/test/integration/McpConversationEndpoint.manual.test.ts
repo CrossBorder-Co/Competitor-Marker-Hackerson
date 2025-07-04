@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { DIContainer } from '../../src/infrastructure/DIContainer.js';
 
 describe('MCP Conversation Manual Test (with real API key)', () => {

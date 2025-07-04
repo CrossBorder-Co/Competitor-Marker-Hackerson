@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { appRouter } from '../../src/presentation/trpc/router.js';
 import { DIContainer } from '../../src/infrastructure/DIContainer.js';
 import { createContext } from '../../src/presentation/trpc/context.js';
@@ -81,7 +81,7 @@ describe('MCP Conversation Endpoint Integration', () => {
     try {
       const mcpUseCase = container.getMcpConversationUseCase();
       await mcpUseCase.execute(requestBody);
-      expect.fail('Should have thrown an error for empty query');
+      throw new Error('Should have thrown an error for empty query');
     } catch (error) {
       expect(error).toBeDefined();
       console.log('✅ Invalid query handled correctly');
