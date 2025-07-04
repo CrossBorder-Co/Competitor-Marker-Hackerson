@@ -1,8 +1,8 @@
-import { ICompanyRepository } from '../../domain/interfaces/ICompanyRepository.js';
-import { ISearchService } from '../../domain/interfaces/ISearchService.js';
-import { IAnalysisService } from '../../domain/interfaces/IAnalysisService.js';
-import { ICacheService } from '../../domain/interfaces/ICacheService.js';
-import { CompetitorResearch, ResearchOptions } from '../../domain/models/Company.js';
+import type { ICompanyRepository } from '../../domain/interfaces/ICompanyRepository.js';
+import type { ISearchService } from '../../domain/interfaces/ISearchService.js';
+import type { IAnalysisService } from '../../domain/interfaces/IAnalysisService.js';
+import type { ICacheService } from '../../domain/interfaces/ICacheService.js';
+import type { CompetitorResearch, ResearchOptions } from '../../domain/models/Company.js';
 
 export class ResearchCompetitorsUseCase {
   constructor(

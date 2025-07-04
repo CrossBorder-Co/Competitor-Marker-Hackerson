@@ -1,4 +1,4 @@
-import { Company } from '../models/Company.js';
+import type { Company } from '../models/Company.js';
 
 export interface ICompanyRepository {
   findById(id: string): Promise<Company | null>;

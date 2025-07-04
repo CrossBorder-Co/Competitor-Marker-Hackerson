@@ -1,5 +1,5 @@
-import { IAnalysisService } from '../../domain/interfaces/IAnalysisService.js';
-import { SearchResult, CompetitorResearch, ResearchOptions } from '../../domain/models/Company.js';
+import type { IAnalysisService } from '../../domain/interfaces/IAnalysisService.js';
+import type { SearchResult, CompetitorResearch, ResearchOptions } from '../../domain/models/Company.js';
 import OpenAI from 'openai';
 
 export class OpenAIAnalysisService implements IAnalysisService {

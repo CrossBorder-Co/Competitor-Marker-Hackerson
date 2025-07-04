@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ResearchCompetitorsUseCase } from '../../src/application/usecases/ResearchCompetitorsUseCase.js';
-import { ICompanyRepository } from '../../src/domain/interfaces/ICompanyRepository.js';
-import { ISearchService } from '../../src/domain/interfaces/ISearchService.js';
-import { IAnalysisService } from '../../src/domain/interfaces/IAnalysisService.js';
-import { ICacheService } from '../../src/domain/interfaces/ICacheService.js';
-import { Company, SearchResult, CompetitorResearch } from '../../src/domain/models/Company.js';
+import type { ICompanyRepository } from '../../src/domain/interfaces/ICompanyRepository.js';
+import type { ISearchService } from '../../src/domain/interfaces/ISearchService.js';
+import type { IAnalysisService } from '../../src/domain/interfaces/IAnalysisService.js';
+import type { ICacheService } from '../../src/domain/interfaces/ICacheService.js';
+import type { Company, SearchResult, CompetitorResearch } from '../../src/domain/models/Company.js';
 
 describe('ResearchCompetitorsUseCase', () => {
   let useCase: ResearchCompetitorsUseCase;

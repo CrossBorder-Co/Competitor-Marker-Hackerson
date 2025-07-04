@@ -1,7 +1,7 @@
-import { ICompanyRepository } from '../domain/interfaces/ICompanyRepository.js';
-import { ISearchService } from '../domain/interfaces/ISearchService.js';
-import { IAnalysisService } from '../domain/interfaces/IAnalysisService.js';
-import { ICacheService } from '../domain/interfaces/ICacheService.js';
+import type { ICompanyRepository } from '../domain/interfaces/ICompanyRepository.js';
+import type { ISearchService } from '../domain/interfaces/ISearchService.js';
+import type { IAnalysisService } from '../domain/interfaces/IAnalysisService.js';
+import type { ICacheService } from '../domain/interfaces/ICacheService.js';
 import { ResearchCompetitorsUseCase } from '../application/usecases/ResearchCompetitorsUseCase.js';
 import { InMemoryCompanyRepository } from './InMemoryCompanyRepository.js';
 import { TavilySearchService } from './external/TavilySearchService.js';

@@ -1,5 +1,5 @@
-import { ISearchService } from '../../domain/interfaces/ISearchService.js';
-import { SearchResult, SearchResultItem, ResearchOptions } from '../../domain/models/Company.js';
+import type { ISearchService } from '../../domain/interfaces/ISearchService.js';
+import type { SearchResult, SearchResultItem, ResearchOptions } from '../../domain/models/Company.js';
 import fetch from 'node-fetch';
 
 export class TavilySearchService implements ISearchService {

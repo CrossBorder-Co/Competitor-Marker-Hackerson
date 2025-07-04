@@ -1,4 +1,4 @@
-import { SearchResult, CompetitorResearch, ResearchOptions } from '../models/Company.js';
+import type { SearchResult, CompetitorResearch, ResearchOptions } from '../models/Company.js';
 
 export interface IAnalysisService {
   analyzeCompetitor(
