@@ -1,10 +1,9 @@
-import { inferAsyncReturnType } from '@trpc/server';
-import { ResearchCompetitorsUseCase } from '../../application/usecases/ResearchCompetitorsUseCase.js';
-import { DIContainer } from '../../infrastructure/DIContainer.js';
+import type { inferAsyncReturnType } from '@trpc/server';
+import type { DIContainer } from '../../infrastructure/DIContainer.js';
 
 export const createContext = async (container: DIContainer) => {
   return {
-    researchCompetitorsUseCase: container.getResearchCompetitorsUseCase(),
+    container,
   };
 };
 
