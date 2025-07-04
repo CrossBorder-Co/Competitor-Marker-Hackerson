@@ -13,8 +13,8 @@ import { OpenAIAnalysisService } from './external/OpenAIAnalysisService.js';
 import { OpenAIMarketAnalysisService } from './external/OpenAIMarketAnalysisService.js';
 import { OpenAIArticleGenerationService } from './external/OpenAIArticleGenerationService.js';
 import { FileCacheService } from './cache/FileCacheService.js';
-import type { IMcpService } from '../domain/interfaces/IMcpService.js';
 import { McpConversationUseCase } from '../application/usecases/McpConversationUseCase.js';
+import { GraphCompanyRevenuesUseCase } from '../application/usecases/GraphCompanyRevenuesUseCase.js';
 
 export interface DIConfig {
   tavilyApiKey: string;
@@ -35,6 +35,7 @@ export class DIContainer {
   private marketAnalysisUseCase: MarketAnalysisUseCase;
   private articleGenerationUseCase: ArticleGenerationUseCase;
   private mcpConversationUseCase: McpConversationUseCase;
+  private graphCompanyRevenuesUseCase: GraphCompanyRevenuesUseCase;
 
   constructor(config: DIConfig) {
     // Initialize services
@@ -68,6 +69,7 @@ export class DIContainer {
     );
     
     this.mcpConversationUseCase = new McpConversationUseCase();
+    this.graphCompanyRevenuesUseCase = new GraphCompanyRevenuesUseCase(this.companyRepository);
   }
 
   getCompanyRepository(): ICompanyRepository {
@@ -104,5 +106,9 @@ export class DIContainer {
 
   getMcpConversationUseCase(): McpConversationUseCase {
     return this.mcpConversationUseCase;
+  }
+
+  getGraphCompanyRevenuesUseCase(): GraphCompanyRevenuesUseCase {
+    return this.graphCompanyRevenuesUseCase;
   }
 }

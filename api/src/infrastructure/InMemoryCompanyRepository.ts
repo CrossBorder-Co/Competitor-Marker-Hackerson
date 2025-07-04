@@ -48,6 +48,10 @@ export class InMemoryCompanyRepository implements ICompanyRepository {
     return company?.recommendationKeywords || [];
   }
 
+  async getAllRevenueRanges(): Promise<Record<string, string>> {
+    return Promise.resolve(this.revenueRanges);
+  }
+
   private seedData() {
     // Sample data from the user's request
     const dn = resolve(__dirname);

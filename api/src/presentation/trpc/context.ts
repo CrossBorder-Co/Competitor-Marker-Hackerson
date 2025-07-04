@@ -10,6 +10,7 @@ export const createContext = async (container: DIContainer) => {
     marketAnalysisUseCase: container.getMarketAnalysisUseCase(),
     articleGenerationUseCase: container.getArticleGenerationUseCase(),
     mcpConversationUseCase: container.getMcpConversationUseCase(),
+    graphCompanyRevenuesUseCase: container.getGraphCompanyRevenuesUseCase(),
   };
 };
 

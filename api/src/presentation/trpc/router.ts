@@ -4,6 +4,7 @@ import { ResearchCompetitorsInputSchema, ResearchCompetitorsOutputSchema } from 
 import { GenerateCompetitorArticleInputSchema, GenerateCompetitorArticleOutputSchema } from '../../application/dto/ArticleDto.js';
 import type { Context } from './context.js';
 import { McpConversationInputSchema, McpConversationOutputSchema } from '../../application/dto/McpDto.js';
+import { GraphCompanyRevenuesInputSchema, GraphCompanyRevenuesOutputSchema } from '../../application/dto/GraphCompanyRevenues.js';
 
 const t = initTRPC.context<Context>().create();
 
@@ -48,6 +49,13 @@ export const appRouter = t.router({
     .output(McpConversationOutputSchema)
     .mutation(async ({ input, ctx }) => {
       return await ctx.mcpConversationUseCase.execute(input);
+    }),
+  
+  graphCompanyRevenuesUseCase: publicProcedure
+    .input(GraphCompanyRevenuesInputSchema)
+    .output(GraphCompanyRevenuesOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      return await ctx.graphCompanyRevenuesUseCase.execute(input);
     }),
   
   health: publicProcedure

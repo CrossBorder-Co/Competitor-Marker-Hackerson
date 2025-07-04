@@ -5,4 +5,5 @@ export interface ICompanyRepository {
   findByName(name: string): Promise<Company | null>;
   findByKeyword(keyword: string): Promise<Company | null>;
   getCompetitors(companyId: string): Promise<string[]>;
+  getAllRevenueRanges(): Promise<Record<string, string>>;
 }
