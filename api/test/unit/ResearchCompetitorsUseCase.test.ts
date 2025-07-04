@@ -93,7 +93,7 @@ describe('ResearchCompetitorsUseCase', () => {
     it('should throw error when no competitors found', async () => {
       await expect(useCase.execute('no-competitors', { language: 'JP', mode: 'normal', limit: 10 }))
         .rejects
-        .toThrow('No competitors found for company no-competitors');
+        .toThrow('Company with ID no-competitors not found');
     });
 
     it('should return results when available', async () => {
