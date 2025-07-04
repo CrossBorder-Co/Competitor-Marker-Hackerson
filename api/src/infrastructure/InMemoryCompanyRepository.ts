@@ -3,6 +3,13 @@ import type { ICompanyRepository } from '../domain/interfaces/ICompanyRepository
 import type { Company } from '../domain/models/Company.js';
 import { join, resolve } from "path";
 
+interface CompanyDto {
+  company_id: string;
+  company_name: string;
+  company_keywords: string[],
+  recommendation_keywords: string[],
+}
+
 export class InMemoryCompanyRepository implements ICompanyRepository {
   private companies: Map<string, Company> = new Map();
   private revenueRanges: Record<string, string> = {};
@@ -44,11 +51,16 @@ export class InMemoryCompanyRepository implements ICompanyRepository {
   private seedData() {
     // Sample data from the user's request
     const dn = resolve(__dirname);
-    const sampleCompanies: Company[] = JSON.parse(readFileSync(join(dn,"comapnies.json")).toString());
+    const sampleCompanies: CompanyDto[] = JSON.parse(readFileSync(join(dn,"comapnies.json")).toString());
     const revenues: Record<string, string> = JSON.parse(readFileSync(join(dn,"revenues.json")).toString());
 
     sampleCompanies.forEach(company => {
-      this.companies.set(company.id, company);
+      this.companies.set(company.company_id, {
+        id: company.company_id,
+        name: company.company_name,
+        keywords: company.company_keywords,
+        recommendationKeywords: company.recommendation_keywords,
+      });
     });
     this.revenueRanges = revenues;
   }
