@@ -10,7 +10,7 @@ import { TavilySearchService } from './external/TavilySearchService.js';
 import { OpenAIAnalysisService } from './external/OpenAIAnalysisService.js';
 import { McpService } from './external/McpService.js';
 import { McpConversationService } from './external/McpConversationService.js';
-import { FileCacheService } from './cache/FileCacheService.js';
+import { FileCacheService } from './services/FileCacheService.js';
 
 export interface DIConfig {
   tavilyApiKey: string;

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
-import { FileCacheService } from '../../src/infrastructure/cache/FileCacheService.js';
+import { FileCacheService } from '../../src/infrastructure/services/FileCacheService.js';
 import type { SearchResult, CompetitorResearch } from '../../src/domain/models/Company.js';
 import fs from 'fs/promises';
 import path from 'path';
