@@ -180,10 +180,16 @@ export class ResearchCompetitorsUseCase {
       }
     }
 
+    // Perform web searches for market analysis
+    console.log(`🔍 Performing web searches for ${type} analysis...`);
+    const searchResults = await this.performMarketSearches(company, type);
+    console.log(`✅ Completed ${searchResults.length} web searches for ${type} analysis`);
+
     const request = {
       targetCompanyName: company.name,
       targetCompanyTerms: company.keywords,
       similarCompaniesTerms,
+      searchResults,
     };
 
     if (type === 'environment') {
@@ -191,5 +197,56 @@ export class ResearchCompetitorsUseCase {
     } else {
       return await this.marketAnalysisService.analyzeThreatEnvironment(request);
     }
+  }
+
+  private async performMarketSearches(company: any, type: 'environment' | 'threat'): Promise<SearchResult[]> {
+    const searchResults: SearchResult[] = [];
+    const options = { language: 'JP' as const, mode: 'normal' as const, limit: 10 };
+
+    try {
+      if (type === 'environment') {
+        // Search for market environment information
+        const environmentSearches = [
+          `${company.name} 市場環境 業界動向`,
+          `${company.name} 市場規模 成長性`,
+          `${company.name} 業界 競争環境`,
+          `${company.name} 顧客セグメント`,
+        ];
+
+        for (const query of environmentSearches) {
+          try {
+            const result = await this.searchService.search(query, options);
+            if (result && result.results.length > 0) {
+              searchResults.push(result);
+            }
+          } catch (error) {
+            console.warn(`⚠️ Search failed for query: ${query}`, error);
+          }
+        }
+      } else {
+        // Search for threat analysis information
+        const threatSearches = [
+          `${company.name} 競合他社 脅威`,
+          `${company.name} 市場 新規参入`,
+          `${company.name} 業界 リスク`,
+          `${company.name} 競争優位性`,
+        ];
+
+        for (const query of threatSearches) {
+          try {
+            const result = await this.searchService.search(query, options);
+            if (result && result.results.length > 0) {
+              searchResults.push(result);
+            }
+          } catch (error) {
+            console.warn(`⚠️ Search failed for query: ${query}`, error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Error performing market searches for ${type}:`, error);
+    }
+
+    return searchResults;
   }
 }

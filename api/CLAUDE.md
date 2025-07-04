@@ -21,3 +21,4 @@ Since this is an empty repository, you'll need to:
 - No coding standards or conventions established yet
 - Repository is located at: /Users/kavinvin/Repositories/sales-marker/hackathon-2025
 - This appears to be a hackathon project based on the directory name
+- Every time claude learn something new please add the knowledge in this file

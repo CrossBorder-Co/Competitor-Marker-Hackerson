@@ -18,6 +18,7 @@ export class OpenAIMarketAnalysisService implements IMarketAnalysisService {
 ・target_company_name（企業名）
 ・target_company_terms
 ・similar_companies_terms
+・search_results（Web検索結果）- 利用可能な場合は、これらの最新情報を分析に活用してください
 ■ analysis_results の出力について
 analysis_results では、市場全体や業界構造に関する主要な論点・トピックごとに、現状・課題・機会・トレンド等を**多面的かつ実務的に分析**してください。
 トピック例：市場規模の推移、成長性、競争環境、顧客セグメント、主要技術トレンド、規制・障壁、新規参入リスクなど。
@@ -48,11 +49,12 @@ JSON形式の結果のみを返し、不要な文章や解説は含めないで�
 
   async analyzeThreatEnvironment(request: MarketAnalysisRequest): Promise<MarketAnalysisResponse> {
     const systemPrompt = `
-あなたは競合分析アシスタントです。指定された目標企業と、その類似企業群から構成される市場領域について、データサイエンス的観点も交えて市場状況を多角的・構造的に分析してください。
+あなたは競合分析アシスタントです。指定された目標企業と、その類似企業群から構成される市場領域について、脅威分析に重点を置いて市場状況を多角的・構造的に分析してください。
 ■ 入力内容：
 ・target_company_name（企業名）
 ・target_company_terms
 ・similar_companies_terms
+・search_results（Web検索結果）- 利用可能な場合は、これらの最新情報を分析に活用してください
 ■ analysis_results の出力について
 analysis_results では、市場全体や業界構造に関する主要な論点・トピックごとに、現状・課題・機会・トレンド等を**多面的かつ実務的に分析**してください。
 トピック例：市場規模の推移、成長性、競争環境、顧客セグメント、主要技術トレンド、規制・障壁、新規参入リスクなど。
@@ -82,7 +84,15 @@ JSON形式の結果のみを返し、不要な文章や解説は含めないで�
   }
 
   private async callOpenAI(systemPrompt: string, request: MarketAnalysisRequest): Promise<MarketAnalysisResponse> {
-    const content = `target_company_name: ${request.targetCompanyName}, target_company_terms: ${JSON.stringify(request.targetCompanyTerms)}, similar_companies_terms: ${JSON.stringify(request.similarCompaniesTerms)}`;
+    let content = `target_company_name: ${request.targetCompanyName}, target_company_terms: ${JSON.stringify(request.targetCompanyTerms)}, similar_companies_terms: ${JSON.stringify(request.similarCompaniesTerms)}`;
+    
+    // Add search results if available
+    if (request.searchResults && request.searchResults.length > 0) {
+      const searchResultsText = request.searchResults.map(result => 
+        `Query: ${result.query}\nResults: ${result.results.map(r => `${r.title}: ${r.snippet}`).join('\n')}`
+      ).join('\n\n');
+      content += `\n\nsearch_results:\n${searchResultsText}`;
+    }
 
     console.log(`🤖 Calling OpenAI for market analysis...`);
     

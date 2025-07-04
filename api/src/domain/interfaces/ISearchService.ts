@@ -4,4 +4,5 @@ export interface ISearchService {
   searchCompetitor(companyName: string, options: ResearchOptions): Promise<SearchResult>;
   searchCompanyProducts(companyName: string, options: ResearchOptions): Promise<SearchResult>;
   searchCompanyFeatures(companyName: string, options: ResearchOptions): Promise<SearchResult>;
+  search(query: string, options: ResearchOptions): Promise<SearchResult>;
 }

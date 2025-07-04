@@ -1,7 +1,10 @@
+import type { SearchResult } from './Company.js';
+
 export interface MarketAnalysisRequest {
   targetCompanyName: string;
   targetCompanyTerms: string[];
   similarCompaniesTerms: Record<string, string[]>;
+  searchResults?: SearchResult[];
 }
 
 export interface MarketAnalysisResponse {

@@ -25,6 +25,10 @@ export class TavilySearchService implements ISearchService {
     return this.performSearch(query, options);
   }
 
+  async search(query: string, options: ResearchOptions): Promise<SearchResult> {
+    return this.performSearch(query, options);
+  }
+
   private buildCompetitorQuery(companyName: string, language: 'EN' | 'JP'): string {
     if (language === 'JP') {
       return `${companyName} 会社情報 事業内容 サービス 製品`;
