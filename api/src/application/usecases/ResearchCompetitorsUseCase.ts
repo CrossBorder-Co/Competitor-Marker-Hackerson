@@ -93,14 +93,34 @@ export class ResearchCompetitorsUseCase {
     
     if (options.includeEnvironmentAnalysis) {
       console.log(`\n🌍 Starting environment analysis for ${company.name}`);
-      response.environmentAnalysis = await this.performMarketAnalysis(company, 'environment');
-      console.log(`✅ Environment analysis completed`);
+      // Check cache first
+      const cachedEnvironmentAnalysis = await this.cacheService.getMarketAnalysis(company.id, 'environment');
+      if (cachedEnvironmentAnalysis) {
+        console.log(`✅ Found cached environment analysis for ${company.name}`);
+        response.environmentAnalysis = cachedEnvironmentAnalysis;
+      } else {
+        console.log(`📝 No cache found, performing new environment analysis for ${company.name}`);
+        response.environmentAnalysis = await this.performMarketAnalysis(company, 'environment');
+        // Cache the results
+        await this.cacheService.setMarketAnalysis(company.id, 'environment', response.environmentAnalysis);
+        console.log(`✅ Environment analysis completed and cached`);
+      }
     }
     
     if (options.includeThreatAnalysis) {
       console.log(`\n⚠️ Starting threat analysis for ${company.name}`);
-      response.threatAnalysis = await this.performMarketAnalysis(company, 'threat');
-      console.log(`✅ Threat analysis completed`);
+      // Check cache first
+      const cachedThreatAnalysis = await this.cacheService.getMarketAnalysis(company.id, 'threat');
+      if (cachedThreatAnalysis) {
+        console.log(`✅ Found cached threat analysis for ${company.name}`);
+        response.threatAnalysis = cachedThreatAnalysis;
+      } else {
+        console.log(`📝 No cache found, performing new threat analysis for ${company.name}`);
+        response.threatAnalysis = await this.performMarketAnalysis(company, 'threat');
+        // Cache the results
+        await this.cacheService.setMarketAnalysis(company.id, 'threat', response.threatAnalysis);
+        console.log(`✅ Threat analysis completed and cached`);
+      }
     }
     
     return response;

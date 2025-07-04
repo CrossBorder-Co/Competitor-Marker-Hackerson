@@ -1,5 +1,6 @@
 import type { ICacheService } from '../../domain/interfaces/ICacheService.js';
 import type { SearchResult, CompetitorResearch } from '../../domain/models/Company.js';
+import type { MarketAnalysisResponse } from '../../domain/models/MarketAnalysis.js';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
@@ -92,8 +93,53 @@ export class FileCacheService implements ICacheService {
     }
   }
 
+  async getMarketAnalysis(companyId: string, analysisType: 'environment' | 'threat'): Promise<MarketAnalysisResponse | null> {
+    try {
+      const key = this.generateMarketAnalysisCacheKey(companyId, analysisType);
+      const filePath = path.join(this.cacheDir, 'market-analysis', `${key}.json`);
+      
+      const stats = await fs.stat(filePath);
+      
+      // Check if cache is expired
+      const ageHours = (Date.now() - stats.mtime.getTime()) / (1000 * 60 * 60);
+      if (ageHours > this.ttlHours) {
+        await fs.unlink(filePath);
+        return null;
+      }
+
+      const content = await fs.readFile(filePath, 'utf-8');
+      const result = JSON.parse(content);
+      return result;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async setMarketAnalysis(companyId: string, analysisType: 'environment' | 'threat', analysis: MarketAnalysisResponse): Promise<void> {
+    try {
+      const key = this.generateMarketAnalysisCacheKey(companyId, analysisType);
+      const marketAnalysisDir = path.join(this.cacheDir, 'market-analysis');
+      await fs.mkdir(marketAnalysisDir, { recursive: true });
+      
+      const filePath = path.join(marketAnalysisDir, `${key}.json`);
+      await fs.writeFile(filePath, JSON.stringify(analysis, null, 2));
+      
+      // Also save as unstructured text for LLM analysis
+      const textPath = path.join(marketAnalysisDir, `${key}.txt`);
+      const textContent = this.formatMarketAnalysisAsText(analysis, analysisType);
+      await fs.writeFile(textPath, textContent);
+    } catch (error) {
+      console.error('Error saving market analysis to cache:', error);
+    }
+  }
+
   generateCacheKey(companyId: string, competitorName: string, searchType: string): string {
     const input = `${companyId}-${competitorName}-${searchType}`;
+    return crypto.createHash('md5').update(input).digest('hex');
+  }
+
+  generateMarketAnalysisCacheKey(companyId: string, analysisType: 'environment' | 'threat'): string {
+    const input = `${companyId}-market-${analysisType}`;
     return crypto.createHash('md5').update(input).digest('hex');
   }
 
@@ -153,6 +199,26 @@ export class FileCacheService implements ICacheService {
     if (research.websiteUrl) {
       text += `Website: ${research.websiteUrl}\n`;
     }
+    
+    return text;
+  }
+
+  private formatMarketAnalysisAsText(analysis: MarketAnalysisResponse, analysisType: 'environment' | 'threat'): string {
+    let text = `Market Analysis Report - ${analysisType.charAt(0).toUpperCase() + analysisType.slice(1)}\n`;
+    text += `Generated: ${new Date().toISOString()}\n\n`;
+    
+    text += `=== Analysis Results ===\n`;
+    analysis.analysisResults.forEach((result, index) => {
+      text += `${index + 1}. ${result.topicTitle}\n`;
+      text += `${result.analysisContent}\n\n`;
+    });
+    
+    text += `=== Relation Results ===\n`;
+    analysis.relationResults.forEach((result, index) => {
+      text += `${index + 1}. ${result.similarCompanyName}\n`;
+      text += `Analysis: ${result.specificAnalysisResultBetweenTargetCompany}\n`;
+      text += `Recommendation: ${result.recommendationNextActionBetweenTargetCompany}\n\n`;
+    });
     
     return text;
   }
