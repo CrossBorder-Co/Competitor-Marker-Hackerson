@@ -3,7 +3,7 @@ import type { ISearchService } from '../../domain/interfaces/ISearchService.js';
 import type { IAnalysisService } from '../../domain/interfaces/IAnalysisService.js';
 import type { ICacheService } from '../../domain/interfaces/ICacheService.js';
 import type { IMarketAnalysisService } from '../../domain/interfaces/IMarketAnalysisService.js';
-import type { CompetitorResearch, ResearchOptions } from '../../domain/models/Company.js';
+import type { CompetitorResearch, ResearchOptions, SearchResult } from '../../domain/models/Company.js';
 import type { MarketAnalysisResponse } from '../../domain/models/MarketAnalysis.js';
 
 export interface ResearchCompetitorsResponse {
