@@ -48,7 +48,7 @@ export class ResearchCompetitorsUseCase {
       try {
         // Check cache first
         console.log(`💾 Checking cache for ${competitorName}`);
-        const cachedResearch = await this.cacheService.getCompetitorResearch(companyId, competitorName);
+        const cachedResearch = await this.cacheService.getCompetitorResearch(companyId, competitorName!);
         if (cachedResearch) {
           console.log(`✅ Found cached research for ${competitorName} (${cachedResearch.lastUpdated.toISOString()})`);
           results.push(cachedResearch);
@@ -59,14 +59,14 @@ export class ResearchCompetitorsUseCase {
         // Perform new research
         const research = await this.researchCompetitor(
           companyId,
-          competitorName,
+          competitorName!,
           targetCompanyContext,
           options
         );
 
         // Cache the results
         console.log(`💾 Caching research results for ${competitorName}`);
-        await this.cacheService.setCompetitorResearch(companyId, competitorName, research);
+        await this.cacheService.setCompetitorResearch(companyId, competitorName!, research);
         results.push(research);
         console.log(`✅ Completed research for ${competitorName}`);
       } catch (error) {
@@ -104,14 +104,16 @@ export class ResearchCompetitorsUseCase {
     for (let i = 0; i < searchResults.length; i++) {
       const result = searchResults[i];
       const searchType = searchTypes[i];
-      const cacheKey = this.cacheService.generateCacheKey(
-        companyId,
-        competitorName,
-        result.query.includes('製品') || result.query.includes('products') ? 'products' : 
-        result.query.includes('特徴') || result.query.includes('features') ? 'features' : 'general'
-      );
-      await this.cacheService.setSearchResult(cacheKey, result);
-      console.log(`    💾 Cached ${searchType} search (${result.results.length} results)`);
+      if (result) {
+        const cacheKey = this.cacheService.generateCacheKey(
+          companyId,
+          competitorName,
+          result.query.includes('製品') || result.query.includes('products') ? 'products' : 
+          result.query.includes('特徴') || result.query.includes('features') ? 'features' : 'general'
+        );
+        await this.cacheService.setSearchResult(cacheKey, result);
+        console.log(`    💾 Cached ${searchType} search (${result.results.length} results)`);
+      }
     }
 
     // 2. Analyze the search results

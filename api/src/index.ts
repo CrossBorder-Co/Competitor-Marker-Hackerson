@@ -50,8 +50,8 @@ const server = createHTTPServer({
 
 const port = parseInt(process.env.PORT || '3001');
 
-server.listen(port, () => {
-  console.log(`🚀 Server running on http://localhost:${port}`);
-  console.log(`📊 Health check: http://localhost:${port}/health`);
-  console.log(`🔍 Research competitors: http://localhost:${port}/researchCompetitors`);
-});
+server.listen(port);
+
+console.log(`🚀 Server running on http://localhost:${port}`);
+console.log(`📊 Health check: http://localhost:${port}/health`);
+console.log(`🔍 Research competitors: http://localhost:${port}/researchCompetitors`);

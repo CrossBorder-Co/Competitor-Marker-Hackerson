@@ -1,16 +1,12 @@
 import { initTRPC } from '@trpc/server';
 import { z } from 'zod';
 import { ResearchCompetitorsInputSchema, ResearchCompetitorsOutputSchema } from '../../application/dto/ResearchDto.js';
-import { ResearchCompetitorsUseCase } from '../../application/usecases/ResearchCompetitorsUseCase.js';
+import type { Context } from './context.js';
 
-const t = initTRPC.create();
+const t = initTRPC.context<Context>().create();
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
-
-export interface Context {
-  researchCompetitorsUseCase: ResearchCompetitorsUseCase;
-}
 
 export const appRouter = t.router({
   researchCompetitors: publicProcedure
