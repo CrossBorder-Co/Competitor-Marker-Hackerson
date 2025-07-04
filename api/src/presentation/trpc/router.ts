@@ -2,6 +2,7 @@ import { initTRPC } from '@trpc/server';
 import { z } from 'zod';
 import { ResearchCompetitorsInputSchema, ResearchCompetitorsOutputSchema } from '../../application/dto/ResearchDto.js';
 import type { Context } from './context.js';
+import { McpConversationInputSchema, McpConversationOutputSchema } from '../../application/dto/McpDto.js';
 
 const t = initTRPC.context<Context>().create();
 
@@ -14,6 +15,13 @@ export const appRouter = t.router({
     .output(ResearchCompetitorsOutputSchema)
     .mutation(async ({ input, ctx }) => {
       return await ctx.researchCompetitorsUseCase.execute(input.companyId, input.options);
+    }),
+  
+  mcpConversation: publicProcedure
+    .input(McpConversationInputSchema)
+    .output(McpConversationOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      return await ctx.mcpConversationUseCase.execute(input);
     }),
   
   health: publicProcedure

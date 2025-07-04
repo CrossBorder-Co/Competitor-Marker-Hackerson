@@ -5,6 +5,7 @@ import { DIContainer } from '../../infrastructure/DIContainer.js';
 export const createContext = async (container: DIContainer) => {
   return {
     researchCompetitorsUseCase: container.getResearchCompetitorsUseCase(),
+    mcpConversationUseCase: container.getMcpConversationUseCase(),
   };
 };
 

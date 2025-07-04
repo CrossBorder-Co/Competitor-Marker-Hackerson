@@ -7,12 +7,15 @@ import { InMemoryCompanyRepository } from './InMemoryCompanyRepository.js';
 import { TavilySearchService } from './external/TavilySearchService.js';
 import { OpenAIAnalysisService } from './external/OpenAIAnalysisService.js';
 import { FileCacheService } from './cache/FileCacheService.js';
+import type { IMcpService } from '../domain/interfaces/IMcpService.js';
+import { McpConversationUseCase } from '../application/usecases/McpConversationUseCase.js';
 
 export interface DIConfig {
   tavilyApiKey: string;
   openaiApiKey: string;
   cacheDir?: string;
   cacheTtlHours?: number;
+  mcpServerUrl?: string;
 }
 
 export class DIContainer {
@@ -21,6 +24,7 @@ export class DIContainer {
   private analysisService: IAnalysisService;
   private cacheService: ICacheService;
   private researchCompetitorsUseCase: ResearchCompetitorsUseCase;
+  private mcpConversationUseCase: McpConversationUseCase;
 
   constructor(config: DIConfig) {
     // Initialize services
@@ -29,6 +33,8 @@ export class DIContainer {
     this.analysisService = new OpenAIAnalysisService(config.openaiApiKey);
     this.cacheService = new FileCacheService(config.cacheDir, config.cacheTtlHours);
 
+
+
     // Initialize use cases
     this.researchCompetitorsUseCase = new ResearchCompetitorsUseCase(
       this.companyRepository,
@@ -36,6 +42,7 @@ export class DIContainer {
       this.analysisService,
       this.cacheService
     );
+    this.mcpConversationUseCase = new McpConversationUseCase();
   }
 
   getCompanyRepository(): ICompanyRepository {
@@ -56,5 +63,9 @@ export class DIContainer {
 
   getResearchCompetitorsUseCase(): ResearchCompetitorsUseCase {
     return this.researchCompetitorsUseCase;
+  }
+
+  getMcpConversationUseCase(): McpConversationUseCase {
+    return this.mcpConversationUseCase;
   }
 }
