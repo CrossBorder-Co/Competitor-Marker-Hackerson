@@ -1,6 +1,7 @@
 import type { IArticleGenerationService, ArticleGenerationOptions } from '../../domain/interfaces/IArticleGenerationService.js';
 import type { ResearchCompetitorsUseCase } from './ResearchCompetitorsUseCase.js';
 import type { ResearchOptions } from '../../domain/models/Company.js';
+import type { ICacheService } from '../../domain/interfaces/ICacheService.js';
 
 export interface ArticleGenerationResponse {
   article: string;
@@ -18,7 +19,8 @@ export interface ArticleGenerationResponse {
 export class ArticleGenerationUseCase {
   constructor(
     private researchCompetitorsUseCase: ResearchCompetitorsUseCase,
-    private articleGenerationService: IArticleGenerationService
+    private articleGenerationService: IArticleGenerationService,
+    private cacheService: ICacheService
   ) {}
 
   async execute(
@@ -27,6 +29,24 @@ export class ArticleGenerationUseCase {
     articleOptions: ArticleGenerationOptions
   ): Promise<ArticleGenerationResponse> {
     console.log(`📰 Starting article generation for company: ${companyKeyword}`);
+    
+    // Check cache first
+    const cachedArticle = await this.cacheService.getGeneratedArticle(companyKeyword);
+    if (cachedArticle) {
+      console.log(`🎯 Using cached article for ${companyKeyword}`);
+      return {
+        article: cachedArticle.content,
+        metadata: {
+          title: cachedArticle.title,
+          generatedAt: cachedArticle.generatedAt,
+          companyName: cachedArticle.companyName,
+          competitorCount: cachedArticle.competitorCount,
+          wordCount: cachedArticle.wordCount,
+          includesEnvironmentAnalysis: cachedArticle.includesEnvironmentAnalysis,
+          includesThreatAnalysis: cachedArticle.includesThreatAnalysis,
+        },
+      };
+    }
     
     // 1. Get research data using ResearchCompetitorsUseCase
     console.log(`🔍 Gathering research data...`);
@@ -67,6 +87,19 @@ export class ArticleGenerationUseCase {
       },
     };
 
+    // Cache the generated article
+    await this.cacheService.setGeneratedArticle(companyKeyword, {
+      content: generatedArticle.content,
+      title: generatedArticle.title,
+      wordCount: generatedArticle.wordCount,
+      generatedAt: response.metadata.generatedAt,
+      companyName,
+      competitorCount: researchData.competitorResearch.length,
+      includesEnvironmentAnalysis: !!researchData.environmentAnalysis,
+      includesThreatAnalysis: !!researchData.threatAnalysis,
+    });
+
+    console.log(`💾 Article cached for ${companyKeyword}`);
     console.log(`🎉 Article generation process completed successfully`);
     return response;
   }

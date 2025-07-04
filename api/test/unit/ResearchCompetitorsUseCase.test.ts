@@ -17,10 +17,12 @@ describe('ResearchCompetitorsUseCase', () => {
     mockCompanyRepository = {
       findById: vi.fn(),
       findByName: vi.fn(),
+      findByKeyword: vi.fn(),
       getCompetitors: vi.fn(),
     };
 
     mockSearchService = {
+      search: vi.fn(),
       searchCompetitor: vi.fn(),
       searchCompanyProducts: vi.fn(),
       searchCompanyFeatures: vi.fn(),
@@ -35,14 +37,21 @@ describe('ResearchCompetitorsUseCase', () => {
       setSearchResult: vi.fn(),
       getCompetitorResearch: vi.fn(),
       setCompetitorResearch: vi.fn(),
+      getMarketAnalysis: vi.fn(),
+      setMarketAnalysis: vi.fn(),
+      getGeneratedArticle: vi.fn(),
+      setGeneratedArticle: vi.fn(),
       generateCacheKey: vi.fn(),
+      generateMarketAnalysisCacheKey: vi.fn(),
+      generateArticleCacheKey: vi.fn(),
     };
 
     useCase = new ResearchCompetitorsUseCase(
       mockCompanyRepository,
       mockSearchService,
       mockAnalysisService,
-      mockCacheService
+      mockCacheService,
+      {} as any // mockMarketAnalysisService
     );
   });
 

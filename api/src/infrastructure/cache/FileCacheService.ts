@@ -1,4 +1,4 @@
-import type { ICacheService } from '../../domain/interfaces/ICacheService.js';
+import type { ICacheService, GeneratedArticleCache } from '../../domain/interfaces/ICacheService.js';
 import type { SearchResult, CompetitorResearch } from '../../domain/models/Company.js';
 import type { MarketAnalysisResponse } from '../../domain/models/MarketAnalysis.js';
 import fs from 'fs/promises';
@@ -141,6 +141,51 @@ export class FileCacheService implements ICacheService {
   generateMarketAnalysisCacheKey(companyId: string, analysisType: 'environment' | 'threat'): string {
     const input = `${companyId}-market-${analysisType}`;
     return crypto.createHash('md5').update(input).digest('hex');
+  }
+
+  generateArticleCacheKey(companyId: string): string {
+    const input = `${companyId}-article`;
+    return crypto.createHash('md5').update(input).digest('hex');
+  }
+
+  async getGeneratedArticle(companyId: string): Promise<GeneratedArticleCache | null> {
+    try {
+      const key = this.generateArticleCacheKey(companyId);
+      const filePath = path.join(this.cacheDir, 'articles', `${key}.json`);
+      
+      const stats = await fs.stat(filePath);
+      
+      // Check if cache is expired
+      const ageHours = (Date.now() - stats.mtime.getTime()) / (1000 * 60 * 60);
+      if (ageHours > this.ttlHours) {
+        await fs.unlink(filePath);
+        return null;
+      }
+
+      const content = await fs.readFile(filePath, 'utf-8');
+      const result = JSON.parse(content);
+      result.generatedAt = new Date(result.generatedAt);
+      return result;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async setGeneratedArticle(companyId: string, article: GeneratedArticleCache): Promise<void> {
+    try {
+      const key = this.generateArticleCacheKey(companyId);
+      const articlesDir = path.join(this.cacheDir, 'articles');
+      await fs.mkdir(articlesDir, { recursive: true });
+      
+      const filePath = path.join(articlesDir, `${key}.json`);
+      await fs.writeFile(filePath, JSON.stringify(article, null, 2));
+      
+      // Also save as markdown file for easy reading
+      const markdownPath = path.join(articlesDir, `${key}.md`);
+      await fs.writeFile(markdownPath, article.content);
+    } catch (error) {
+      console.error('Error saving generated article to cache:', error);
+    }
   }
 
   private formatSearchResultAsText(result: SearchResult): string {

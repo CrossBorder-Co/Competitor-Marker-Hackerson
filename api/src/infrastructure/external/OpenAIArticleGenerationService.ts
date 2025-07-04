@@ -62,7 +62,7 @@ export class OpenAIArticleGenerationService implements IArticleGenerationService
 
       return {
         content: articleContent,
-        title,
+        title: title || `${companyName} 競合分析レポート`,
         wordCount,
       };
     } catch (error) {

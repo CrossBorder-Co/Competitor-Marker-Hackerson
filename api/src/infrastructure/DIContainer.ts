@@ -63,7 +63,8 @@ export class DIContainer {
     
     this.articleGenerationUseCase = new ArticleGenerationUseCase(
       this.researchCompetitorsUseCase,
-      this.articleGenerationService
+      this.articleGenerationService,
+      this.cacheService
     );
     
     this.mcpConversationUseCase = new McpConversationUseCase();
