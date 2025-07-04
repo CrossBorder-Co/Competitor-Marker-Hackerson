@@ -1,5 +1,6 @@
 import type { IArticleGenerationService, ArticleGenerationOptions, GeneratedArticle } from '../../domain/interfaces/IArticleGenerationService.js';
 import type { ResearchCompetitorsResponse } from '../../application/usecases/ResearchCompetitorsUseCase.js';
+import { TokenManager } from '../utils/TokenManager.js';
 import OpenAI from 'openai';
 
 export class OpenAIArticleGenerationService implements IArticleGenerationService {
@@ -19,11 +20,17 @@ export class OpenAIArticleGenerationService implements IArticleGenerationService
     console.log(`📝 Generating competitor article for ${companyName}...`);
 
     const systemPrompt = this.buildSystemPrompt(options);
-    const userContent = this.buildUserContent(companyName, researchData);
+    const rawUserContent = this.buildUserContent(companyName, researchData);
+    
+    // Optimize content for token limits
+    const model = 'gpt-4o-mini';
+    const optimizedUserContent = TokenManager.optimizeForAnalysis(systemPrompt, rawUserContent, model);
+    
+    console.log(`📝 Content optimized: ${rawUserContent.length} chars → ${optimizedUserContent.length} chars`);
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model,
         messages: [
           {
             role: 'system',
@@ -31,7 +38,7 @@ export class OpenAIArticleGenerationService implements IArticleGenerationService
           },
           {
             role: 'user',
-            content: userContent,
+            content: optimizedUserContent,
           },
         ],
         temperature: 0.7,

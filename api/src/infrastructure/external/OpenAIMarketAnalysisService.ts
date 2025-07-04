@@ -1,5 +1,6 @@
 import type { IMarketAnalysisService } from '../../domain/interfaces/IMarketAnalysisService.js';
 import type { MarketAnalysisRequest, MarketAnalysisResponse } from '../../domain/models/MarketAnalysis.js';
+import { TokenManager } from '../utils/TokenManager.js';
 import OpenAI from 'openai';
 
 export class OpenAIMarketAnalysisService implements IMarketAnalysisService {
@@ -94,11 +95,15 @@ JSON形式の結果のみを返し、不要な文章や解説は含めないで�
       content += `\n\nsearch_results:\n${searchResultsText}`;
     }
 
-    console.log(`🤖 Calling OpenAI for market analysis...`);
+    // Optimize content for token limits
+    const model = 'gpt-4o-mini';
+    const optimizedContent = TokenManager.optimizeForAnalysis(systemPrompt, content, model);
+    
+    console.log(`🤖 Calling OpenAI for market analysis (${content.length} chars → ${optimizedContent.length} chars)...`);
     
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model,
         messages: [
           {
             role: 'system',
@@ -106,7 +111,7 @@ JSON形式の結果のみを返し、不要な文章や解説は含めないで�
           },
           {
             role: 'user',
-            content,
+            content: optimizedContent,
           },
         ],
         temperature: 0.3,

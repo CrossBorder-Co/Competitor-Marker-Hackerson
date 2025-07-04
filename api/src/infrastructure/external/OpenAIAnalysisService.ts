@@ -1,5 +1,6 @@
 import type { IAnalysisService } from '../../domain/interfaces/IAnalysisService.js';
 import type { SearchResult, CompetitorResearch, ResearchOptions } from '../../domain/models/Company.js';
+import { TokenManager } from '../utils/TokenManager.js';
 import OpenAI from 'openai';
 
 export class OpenAIAnalysisService implements IAnalysisService {
@@ -18,27 +19,34 @@ export class OpenAIAnalysisService implements IAnalysisService {
     options: ResearchOptions
   ): Promise<CompetitorResearch> {
     console.log(`      🤖 Building analysis prompt for ${competitorName}`);
-    const prompt = this.buildAnalysisPrompt(competitorName, searchResults, targetCompanyContext, options);
+    
+    const systemPrompt = options.language === 'JP' 
+      ? 'あなたは競合他社分析の専門家です。日本語で詳細な分析を行ってください。'
+      : 'You are a competitive analysis expert. Provide detailed analysis in English.';
+    
+    const rawPrompt = this.buildAnalysisPrompt(competitorName, searchResults, targetCompanyContext, options);
+    
+    // Optimize content for token limits
+    const model = 'gpt-4o-mini'; // Use cheaper model with better token management
+    const optimizedPrompt = TokenManager.optimizeForAnalysis(systemPrompt, rawPrompt, model);
     
     const totalSearchContent = searchResults.reduce((sum, r) => 
       sum + r.results.reduce((s, item) => s + (item.snippet?.length || 0) + (item.content?.length || 0), 0), 0
     );
-    console.log(`      📝 Prompt prepared (${prompt.length} chars, ${totalSearchContent} chars of search content)`);
+    console.log(`      📝 Prompt prepared (${rawPrompt.length} chars → ${optimizedPrompt.length} chars, ${totalSearchContent} chars of search content)`);
     
     try {
-      console.log(`      🧠 Calling OpenAI GPT-4 for analysis...`);
+      console.log(`      🧠 Calling OpenAI ${model} for analysis...`);
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4',
+        model,
         messages: [
           {
             role: 'system',
-            content: options.language === 'JP' 
-              ? 'あなたは競合他社分析の専門家です。日本語で詳細な分析を行ってください。'
-              : 'You are a competitive analysis expert. Provide detailed analysis in English.',
+            content: systemPrompt,
           },
           {
             role: 'user',
-            content: prompt,
+            content: optimizedPrompt,
           },
         ],
         temperature: 0.3,
