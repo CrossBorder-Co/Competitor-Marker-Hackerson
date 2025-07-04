@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ResearchCompetitorsInputSchema, ResearchCompetitorsOutputSchema } from '../../application/dto/ResearchDto.js';
 import { MarketAnalysisInputSchema, MarketAnalysisOutputSchema } from '../../application/dto/MarketAnalysisDto.js';
 import type { Context } from './context.js';
+import { McpConversationInputSchema, McpConversationOutputSchema } from '../../application/dto/McpDto.js';
 
 const t = initTRPC.context<Context>().create();
 
@@ -29,6 +30,13 @@ export const appRouter = t.router({
     .output(MarketAnalysisOutputSchema)
     .mutation(async ({ input, ctx }) => {
       return await ctx.marketAnalysisUseCase.analyzeThreat(input.targetCompanyName);
+    }),
+  
+  mcpConversation: publicProcedure
+    .input(McpConversationInputSchema)
+    .output(McpConversationOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      return await ctx.mcpConversationUseCase.execute(input);
     }),
   
   health: publicProcedure

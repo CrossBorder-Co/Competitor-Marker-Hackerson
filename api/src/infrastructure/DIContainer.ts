@@ -10,12 +10,15 @@ import { TavilySearchService } from './external/TavilySearchService.js';
 import { OpenAIAnalysisService } from './external/OpenAIAnalysisService.js';
 import { OpenAIMarketAnalysisService } from './external/OpenAIMarketAnalysisService.js';
 import { FileCacheService } from './cache/FileCacheService.js';
+import type { IMcpService } from '../domain/interfaces/IMcpService.js';
+import { McpConversationUseCase } from '../application/usecases/McpConversationUseCase.js';
 
 export interface DIConfig {
   tavilyApiKey: string;
   openaiApiKey: string;
   cacheDir?: string;
   cacheTtlHours?: number;
+  mcpServerUrl?: string;
 }
 
 export class DIContainer {
@@ -26,6 +29,7 @@ export class DIContainer {
   private cacheService: ICacheService;
   private researchCompetitorsUseCase: ResearchCompetitorsUseCase;
   private marketAnalysisUseCase: MarketAnalysisUseCase;
+  private mcpConversationUseCase: McpConversationUseCase;
 
   constructor(config: DIConfig) {
     // Initialize services
@@ -34,6 +38,8 @@ export class DIContainer {
     this.analysisService = new OpenAIAnalysisService(config.openaiApiKey);
     this.marketAnalysisService = new OpenAIMarketAnalysisService(config.openaiApiKey);
     this.cacheService = new FileCacheService(config.cacheDir, config.cacheTtlHours);
+
+
 
     // Initialize use cases
     this.researchCompetitorsUseCase = new ResearchCompetitorsUseCase(
@@ -47,6 +53,8 @@ export class DIContainer {
       this.companyRepository,
       this.marketAnalysisService
     );
+    
+    this.mcpConversationUseCase = new McpConversationUseCase();
   }
 
   getCompanyRepository(): ICompanyRepository {
@@ -75,5 +83,9 @@ export class DIContainer {
 
   getMarketAnalysisUseCase(): MarketAnalysisUseCase {
     return this.marketAnalysisUseCase;
+  }
+
+  getMcpConversationUseCase(): McpConversationUseCase {
+    return this.mcpConversationUseCase;
   }
 }

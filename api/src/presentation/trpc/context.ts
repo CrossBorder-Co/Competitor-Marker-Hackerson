@@ -7,6 +7,7 @@ export const createContext = async (container: DIContainer) => {
   return {
     researchCompetitorsUseCase: container.getResearchCompetitorsUseCase(),
     marketAnalysisUseCase: container.getMarketAnalysisUseCase(),
+    mcpConversationUseCase: container.getMcpConversationUseCase(),
   };
 };
 
