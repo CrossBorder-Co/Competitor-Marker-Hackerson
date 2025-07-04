@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { FileCacheService } from '../../src/infrastructure/cache/FileCacheService.js';
-import { SearchResult, CompetitorResearch } from '../../src/domain/models/Company.js';
+import type { SearchResult, CompetitorResearch } from '../../src/domain/models/Company.js';
 import fs from 'fs/promises';
 import path from 'path';
 import { rimraf } from 'rimraf';

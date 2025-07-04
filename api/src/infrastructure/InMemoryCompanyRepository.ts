@@ -1,5 +1,5 @@
-import { ICompanyRepository } from '../domain/interfaces/ICompanyRepository.js';
-import { Company } from '../domain/models/Company.js';
+import type { ICompanyRepository } from '../domain/interfaces/ICompanyRepository.js';
+import type { Company } from '../domain/models/Company.js';
 
 export class InMemoryCompanyRepository implements ICompanyRepository {
   private companies: Map<string, Company> = new Map();

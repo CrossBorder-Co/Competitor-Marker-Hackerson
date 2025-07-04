@@ -1,5 +1,5 @@
-import { IAnalysisService } from '../../domain/interfaces/IAnalysisService.js';
-import { SearchResult, CompetitorResearch, ResearchOptions } from '../../domain/models/Company.js';
+import type { IAnalysisService } from '../../domain/interfaces/IAnalysisService.js';
+import type { SearchResult, CompetitorResearch, ResearchOptions } from '../../domain/models/Company.js';
 import OpenAI from 'openai';
 
 export class OpenAIAnalysisService implements IAnalysisService {
@@ -178,32 +178,32 @@ Please return the analysis in the following format:
     // Extract main products
     const productsMatch = analysis.match(/\*\*主要製品・サービス:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i) ||
                          analysis.match(/\*\*Main Products\/Services:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i);
-    if (productsMatch) sections.products = productsMatch[1].trim();
+    if (productsMatch && productsMatch[1]) sections.products = productsMatch[1].trim();
 
     // Extract key features
     const featuresMatch = analysis.match(/\*\*主要機能・特徴:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i) ||
                          analysis.match(/\*\*Key Features:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i);
-    if (featuresMatch) sections.features = featuresMatch[1].trim();
+    if (featuresMatch && featuresMatch[1]) sections.features = featuresMatch[1].trim();
 
     // Extract strengths
     const strengthsMatch = analysis.match(/\*\*強み:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i) ||
                           analysis.match(/\*\*Strengths:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i);
-    if (strengthsMatch) sections.strengths = strengthsMatch[1].trim();
+    if (strengthsMatch && strengthsMatch[1]) sections.strengths = strengthsMatch[1].trim();
 
     // Extract weaknesses
     const weaknessesMatch = analysis.match(/\*\*弱み:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i) ||
                            analysis.match(/\*\*Weaknesses:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i);
-    if (weaknessesMatch) sections.weaknesses = weaknessesMatch[1].trim();
+    if (weaknessesMatch && weaknessesMatch[1]) sections.weaknesses = weaknessesMatch[1].trim();
 
     // Extract market position
     const marketMatch = analysis.match(/\*\*市場ポジション:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i) ||
                        analysis.match(/\*\*Market Position:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i);
-    if (marketMatch) sections.marketPosition = marketMatch[1].trim();
+    if (marketMatch && marketMatch[1]) sections.marketPosition = marketMatch[1].trim();
 
     // Extract comparison
     const comparisonMatch = analysis.match(/\*\*対象会社との比較:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i) ||
                            analysis.match(/\*\*Comparison with Target Company:\*\*\n([\s\S]*?)(?=\n\*\*|$)/i);
-    if (comparisonMatch) sections.comparison = comparisonMatch[1].trim();
+    if (comparisonMatch && comparisonMatch[1]) sections.comparison = comparisonMatch[1].trim();
 
     return sections;
   }

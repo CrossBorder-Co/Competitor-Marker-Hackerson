@@ -10,7 +10,7 @@ import { TavilySearchService } from './external/TavilySearchService.js';
 import { OpenAIAnalysisService } from './external/OpenAIAnalysisService.js';
 import { McpService } from './external/McpService.js';
 import { McpConversationService } from './external/McpConversationService.js';
-import { FileCacheService } from './cache/FileCacheService.js';
+import { FileCacheService } from '../infrastructure/cache/FileCacheService.js';
 
 export interface DIConfig {
   tavilyApiKey: string;
@@ -35,7 +35,7 @@ export class DIContainer {
     this.companyRepository = new InMemoryCompanyRepository();
     this.searchService = new TavilySearchService(config.tavilyApiKey);
     this.analysisService = new OpenAIAnalysisService(config.openaiApiKey);
-    this.cacheService = new FileCacheService(config.cacheDir, config.cacheTtlHours);
+    this.cacheService = new FileCacheService(config.cacheDir || './cache', config.cacheTtlHours);
     this.mcpService = new McpService(config.mcpServerUrl);
     this.mcpConversationService = new McpConversationService(config.openaiApiKey, this.mcpService);
 

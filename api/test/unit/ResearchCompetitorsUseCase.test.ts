@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ResearchCompetitorsUseCase } from '../../src/application/usecases/ResearchCompetitorsUseCase.js';
-import { ICompanyRepository } from '../../src/domain/interfaces/ICompanyRepository.js';
-import { ISearchService } from '../../src/domain/interfaces/ISearchService.js';
-import { IAnalysisService } from '../../src/domain/interfaces/IAnalysisService.js';
-import { ICacheService } from '../../src/domain/interfaces/ICacheService.js';
-import { Company, SearchResult, CompetitorResearch } from '../../src/domain/models/Company.js';
+import type { ICompanyRepository } from '../../src/domain/interfaces/ICompanyRepository.js';
+import type { ISearchService } from '../../src/domain/interfaces/ISearchService.js';
+import type { IAnalysisService } from '../../src/domain/interfaces/IAnalysisService.js';
+import type { ICacheService } from '../../src/domain/interfaces/ICacheService.js';
+import type { Company, SearchResult, CompetitorResearch } from '../../src/domain/models/Company.js';
 
 describe('ResearchCompetitorsUseCase', () => {
   let useCase: ResearchCompetitorsUseCase;
@@ -50,7 +50,7 @@ describe('ResearchCompetitorsUseCase', () => {
     it('should throw error when company is not found', async () => {
       vi.mocked(mockCompanyRepository.findById).mockResolvedValue(null);
 
-      await expect(useCase.execute('invalid-id', { language: 'JP', mode: 'normal' }))
+      await expect(useCase.execute('invalid-id', { language: 'JP', mode: 'normal', limit: 10 }))
         .rejects
         .toThrow('Company with ID invalid-id not found');
     });
@@ -66,7 +66,7 @@ describe('ResearchCompetitorsUseCase', () => {
       vi.mocked(mockCompanyRepository.findById).mockResolvedValue(mockCompany);
       vi.mocked(mockCompanyRepository.getCompetitors).mockResolvedValue([]);
 
-      await expect(useCase.execute('123', { language: 'JP', mode: 'normal' }))
+      await expect(useCase.execute('123', { language: 'JP', mode: 'normal', limit: 10 }))
         .rejects
         .toThrow('No competitors found for company 123');
     });
@@ -95,7 +95,7 @@ describe('ResearchCompetitorsUseCase', () => {
       vi.mocked(mockCompanyRepository.getCompetitors).mockResolvedValue(['Competitor 1']);
       vi.mocked(mockCacheService.getCompetitorResearch).mockResolvedValue(mockCachedResearch);
 
-      const result = await useCase.execute('123', { language: 'JP', mode: 'normal' });
+      const result = await useCase.execute('123', { language: 'JP', mode: 'normal', limit: 10 });
 
       expect(result).toEqual([mockCachedResearch]);
       expect(mockSearchService.searchCompetitor).not.toHaveBeenCalled();
@@ -143,7 +143,7 @@ describe('ResearchCompetitorsUseCase', () => {
       vi.mocked(mockAnalysisService.analyzeCompetitor).mockResolvedValue(mockResearch);
       vi.mocked(mockCacheService.generateCacheKey).mockReturnValue('cache-key');
 
-      const result = await useCase.execute('123', { language: 'JP', mode: 'normal' });
+      const result = await useCase.execute('123', { language: 'JP', mode: 'normal', limit: 10 });
 
       expect(result).toEqual([mockResearch]);
       expect(mockSearchService.searchCompetitor).toHaveBeenCalledWith('Competitor 1', { language: 'JP', mode: 'normal' });
